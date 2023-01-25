@@ -1,12 +1,20 @@
+/**
+ * Group4: Scrabble
+ * COMP4721: Software Design
+ * Class: Letter
+ */
+
+//Package
 package com.compmta.scrabble.util;
 
+//Import statements
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+//Generates getters
 @Getter
 @AllArgsConstructor
 public enum Letter {
@@ -39,6 +47,7 @@ public enum Letter {
     Z('z', 10, 1),
     BLANK(' ', 0, 2);
 
+    //Instance variables
     private char letter;
     private int baseScore;
     private int initialAmount;
