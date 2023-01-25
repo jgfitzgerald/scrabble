@@ -14,7 +14,7 @@ import java.util.Random;
 public class GameStateController {
 
     private static final int INITIAL_LETTER_AMT = 7;
-    private static final int NUM_LETTERS = 26;
+    private static final int NUM_LETTERS = 27;
     private static final int MAX_PLAYERS = 4;
 
     static GameState gameState;
@@ -53,14 +53,14 @@ public class GameStateController {
         }
     }
 
-    public PlayerInfo drawLetters(PlayerInfo p, int n) {
+    public void drawLetters(PlayerInfo p, int n) {
         Random r = new Random();
         for (int i = 0; i < n; i++) {
             int index = r.nextInt(gameState.getLetters().size());
             char ch = gameState.getLetters().remove(index);
             p.getRack().add(ch);
         }
-        return p;
+        //return p;
     }
 
 }

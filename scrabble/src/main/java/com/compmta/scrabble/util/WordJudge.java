@@ -9,7 +9,6 @@ public class WordJudge {
             Tile curr = word[i];
             score = curr.effect(word, score, i);
         }
-        int modifier = word.length;
         for (int i = 0; i < word.length; i++) {
             Tile curr = word[i];
             score = curr.effect(word, score, word.length);

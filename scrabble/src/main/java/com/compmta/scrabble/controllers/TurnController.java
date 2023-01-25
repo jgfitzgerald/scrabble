@@ -14,7 +14,7 @@ public class TurnController {
     private PlayerInfo currPlayer;
 
     public Turn startTurn() {
-        // TO-DO STUFF
+        // DO STUFF
         return new Turn(currPlayer.getId());
     }
 
@@ -31,7 +31,7 @@ public class TurnController {
     }
 
     public void chooseWord(int[] startCoords, int[] endCoords, String word) {
-
+        // DO STUFF
     }
 
 }
