@@ -37,25 +37,29 @@ public class GameState {
     private static Dictionary dictionary;
 
     /**
+     * addPlayer adds the players info to the array 
+     * of players
      * 
-     * @param p
+     * @param playerInfo takes the player information
      */
-    public void addPlayer(PlayerInfo p) {
-        players.add(p);
-    }
+    public void addPlayer(PlayerInfo playerInfo) {
+        players.add(playerInfo);
+    } //addPlayer(PlayerInfo playerInfo)
 
     /**
+     * setStatus sets the current game status
      * 
-     * @param status
+     * @param status takes the current game status
      */
     public void setStatus(GameStatus status) {
         this.status = status;
-    }
+    } //setStatus(GameStatus status)
 
     /**
+     * insitialize starts the game and creates the relevent game objects
      * 
-     * @param players
-     * @return
+     * @param players takes the players that are currently in the game
+     * @return the game state
      */
     public static GameState initialize(ArrayList<PlayerInfo> players) {
         GameState gs = new GameState();
@@ -74,10 +78,10 @@ public class GameState {
             ex.printStackTrace();
         }
         return gs;
-    }
+    } //initialize(ArrayList<PlayerInfo> players)
 
     /**
-     * 
+     * initialize letter creates all of the letters in the game
      */
     public void initializeLetters() {
         this.letters = new ArrayList<Character>();
@@ -87,6 +91,6 @@ public class GameState {
                 letters.add(l.getLetter());
             }
         }
-    }
+    } //initializeLetters()
 
 }
