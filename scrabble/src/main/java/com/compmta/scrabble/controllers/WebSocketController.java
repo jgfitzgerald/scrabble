@@ -1,5 +1,13 @@
+/**
+ * Group4: Scrabble
+ * COMP4721: Software Design
+ * Class: WebSocketController
+ */
+
+//package
 package com.compmta.scrabble.controllers;
 
+//imports
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +18,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
+
 @RestController
 @Slf4j
 @CrossOrigin
+
 public class WebSocketController {
 
     @Autowired
