@@ -1,20 +1,31 @@
+/**
+ * Group4: Scrabble
+ * COMP4721: Software Design
+ * Class: GameState
+ */
+
+//package
 package com.compmta.scrabble.model;
 
+//imports
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.UUID;
 
+//generates a no argument constructor, getters, and setters
 @NoArgsConstructor
 @Getter
 @Setter
+
 public class GameState {
+
+    //Instance variables
     private String id;
     private ArrayList<PlayerInfo> players;
     private int numPlayers;
@@ -23,17 +34,29 @@ public class GameState {
     private HashSet<String> playedWords;
     private ArrayList<Turn> turnLog;
     private Board board;
-
     private static Dictionary dictionary;
 
+    /**
+     * 
+     * @param p
+     */
     public void addPlayer(PlayerInfo p) {
         players.add(p);
     }
 
+    /**
+     * 
+     * @param status
+     */
     public void setStatus(GameStatus status) {
         this.status = status;
     }
 
+    /**
+     * 
+     * @param players
+     * @return
+     */
     public static GameState initialize(ArrayList<PlayerInfo> players) {
         GameState gs = new GameState();
         gs.setId(UUID.randomUUID().toString());
@@ -53,6 +76,9 @@ public class GameState {
         return gs;
     }
 
+    /**
+     * 
+     */
     public void initializeLetters() {
         this.letters = new ArrayList<Character>();
         for (Letter l : Letter.values()) {

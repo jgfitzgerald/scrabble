@@ -1,20 +1,35 @@
+/**
+ * Group4: Scrabble
+ * COMP4721: Software Design
+ * Class: Board
+ */
+
+// package
 package com.compmta.scrabble.model;
 
+//imports
 import lombok.Getter;
 import lombok.Setter;
 
+//generates getters and setters
 @Getter
 @Setter
+
 public class Board {
 
+    //Constants
     public final int BOARD_SIZE = 15;
     public final int EFFECT_TILE = 7;
 
+    //Instance variables
     private Tile[][] board;
 
+    /**
+     * Constructor
+     */
     public Board() {
         this.board = this.initialize();
-    }
+    } //Constructor
 
     //This is sort of a logistical nightmare honestly im sorry for this
     private Tile[][] initialize() {
@@ -87,8 +102,15 @@ public class Board {
         return temp;
     }
 
+    /**
+     * getTile gets the tile at the given coordinates
+     * 
+     * @param i x location of the tile
+     * @param j y location of the tile
+     * @return
+     */
     public Tile getTile(int i, int j) {
         return board[i][j];
-    }
+    } //getTile(int i, int j)
 
 }
