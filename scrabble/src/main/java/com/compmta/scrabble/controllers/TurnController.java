@@ -33,6 +33,7 @@ public class TurnController {
         return applyTurn(newMove);
     } //startTurn()
 
+
     private static GameStateInfo applyTurn(Turn turn) {
         BoardController.placeWord(turn.getStartCoords(),turn.getEndCoords(), turn.getWord());
         GameStateController.players.get(turn.getPlayerId()).updateScore(turn.getScore());

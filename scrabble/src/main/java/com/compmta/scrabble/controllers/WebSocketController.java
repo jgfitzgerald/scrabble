@@ -30,6 +30,9 @@ public class WebSocketController {
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    /**
+     * Sends a request to GameStateController to add a new player to the game
+    */
     @PostMapping("/join")
     public ResponseEntity<Void> join(@RequestBody PlayerId id) throws Exception {
         log.info("join request for id: {}", id);
@@ -37,6 +40,9 @@ public class WebSocketController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Sends a request to GameStateController to set up the game
+     */
     @PostMapping("/start")
     public ResponseEntity<Void> start() {
         log.info("starting...");
@@ -45,6 +51,9 @@ public class WebSocketController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Fetches the game state
+     */
     @GetMapping("/gamestate")
     @SendTo("/game/gameState")
     public ResponseEntity<GameState> getGame() throws Exception {
@@ -52,11 +61,17 @@ public class WebSocketController {
         return ResponseEntity.ok(GameStateController.getGameState());
     }
 
+    /**
+     * Fetches the player with the specified id
+     */
     @SendTo("/game/playerInfo")
-    public PlayerId getPlayer(@Payload PlayerId id) throws Exception {
-        return id;
+    public PlayerInfo getPlayer(@Payload PlayerId id) throws Exception {
+        return GameStateController.players.get(id.id());
     }
 
+    /**
+     * Queries TurnController to make the move with the specified turnInfo
+     */
     @PostMapping("/move")
     public ResponseEntity<Void> placeWord(@RequestBody TurnInfo turnInfo){
         if(game.getGameState() == null){
@@ -76,6 +91,9 @@ public class WebSocketController {
         }
     }
 
+    /**
+     * Queries TurnController to challenge the turn with the specified turnInfo
+     */
     @PostMapping("/challenge")
     public ResponseEntity<Void> challengeWord(@RequestBody TurnInfo turnInfo){
         if(game.getGameState() == null){
