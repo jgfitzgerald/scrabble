@@ -1,39 +1,25 @@
-/**
- * Group4: Scrabble
- * COMP4721: Software Design
- * Class: DoubleWordTile
- */
-
-//package
 package com.compmta.scrabble.model;
 
-//imports
 import com.compmta.scrabble.util.Letter;
 
 public class DoubleWordTile extends Tile {
 
-    /**
-     * Constructor
-     * Constructor for creating a DoubleWordTile
-     * Takes the row and column of the tile
-     * 
-     * @param i row
-     * @param j column
-     */
-    public DoubleWordTile(int i, int j) {
-        super(i, j);
-    } //Constructor
+    private char letter;
 
     /**
-     * Doubles the score of the word that is on the tile
+     *
+     * @param word the word the player has played
+     * @param score the score of the word
+     * @param index the index to check
+     * @return the updated score
      */
     @Override
-    public int effect(Tile[] word, int score, int index) {
-        if (index == word.length) {
+    public int effect(String word, int score, int index) {
+        if (index == word.length()) {
             return score * 2;
         } else {
-            return score + Letter.map.get(word[index].getLetter()).getBaseScore();
+            return score + Letter.map.get(word.charAt(index)).getBaseScore();
         }
-    } //effect(Tile[] word, int score, int index)
+    }
 
 }

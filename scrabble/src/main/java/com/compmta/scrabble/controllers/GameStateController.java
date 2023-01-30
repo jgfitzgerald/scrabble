@@ -1,63 +1,47 @@
-/**
- * Group4: Scrabble
- * COMP4721: Software Design
- * Class: GameStateController
- */
-
-//packages
 package com.compmta.scrabble.controllers;
 
-//imports
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-//generates getters
 @Getter
-
 @Component
 public class GameStateController {
 
-    //constants
     private static final int INITIAL_LETTER_AMT = 7;
-    private static final int NUM_LETTERS = 27;
+    private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 4;
+    private static final int NUM_PASSES = 3;
 
-    //instance variables
     static GameState gameState;
-    private final HashMap<String, PlayerInfo> players;
+    static HashMap<String, PlayerInfo> players;
     private final ArrayList<PlayerInfo> playerList;
 
-    /**
-     * Constructor
-     * Initializes instance variables
-     */
     public GameStateController() {
         this.playerList = new ArrayList<PlayerInfo>();
-        this.players = new HashMap<String, PlayerInfo>();
-    }//Constructor
+        players = new HashMap<String, PlayerInfo>();
+    }
 
     /**
-     * getGameState returns the game state
-     * @return the game state
+     * @return The current game state
      */
-    static GameState getGameState() {
+    public static GameState getGameState() {
         return gameState;
-    } //getGameState()
+    }
 
     /**
-     * Adds the player to the game if there is space
-     * 
-     * @param id the player id
-     * @return the player
+     * Adds a player with the specified name to the game
+     * @param id The requested id
+     * @return The PlayerInfo
      */
     public PlayerInfo joinGame(String id) {
         if (players.size() == MAX_PLAYERS) {
-            throw new IllegalArgumentException("This game is already full.");
+            throw new IllegalStateException("This game is already full.");
         }
         if (players.get(id) != null) {
             throw new IllegalArgumentException("Player name is taken.");
@@ -66,12 +50,15 @@ public class GameStateController {
         players.put(id, p);
         playerList.add(p);
         return p;
-    } //joinGame(String id)
+    }
 
     /**
      * Sets up the relevent parts of the game
      */
     public void setUpGame() {
+        if (players.size() < MIN_PLAYERS) {
+            throw new IllegalStateException("Can't start game with only 1 player!");
+        }
         if (gameState == null) {
             gameState = GameState.initialize(playerList);
             BoardController.board = gameState.getBoard();
@@ -82,12 +69,9 @@ public class GameStateController {
     } //setUpGame()
 
     /**
-     * drawLetters takes the amount of letters you would like
-     * drawn for a specific player and draws the requested amount of 
-     * letters.
-     * 
-     * @param p the player information
-     * @param n the amount of letters to draw
+     * Draws n letters into the players rack
+     * @param p The player
+     * @param n The number of letters to be drawn
      */
     public void drawLetters(PlayerInfo p, int n) {
         Random r = new Random();
@@ -97,6 +81,6 @@ public class GameStateController {
             p.getRack().add(ch);
         }
         //return p;
-    }//drawLetters(PlayerInfo p, int n)
+    }
 
 }

@@ -1,31 +1,20 @@
-/**
- * Group4: Scrabble
- * COMP4721: Software Design
- * Class: GameState
- */
-
-//package
 package com.compmta.scrabble.model;
 
-//imports
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.UUID;
 
-//generates a no argument constructor, getters, and setters
 @NoArgsConstructor
 @Getter
 @Setter
-
 public class GameState {
-
-    //Instance variables
     private String id;
     private ArrayList<PlayerInfo> players;
     private int numPlayers;
@@ -34,32 +23,21 @@ public class GameState {
     private HashSet<String> playedWords;
     private ArrayList<Turn> turnLog;
     private Board board;
+
     private static Dictionary dictionary;
 
-    /**
-     * addPlayer adds the players info to the array 
-     * of players
-     * 
-     * @param playerInfo takes the player information
-     */
-    public void addPlayer(PlayerInfo playerInfo) {
-        players.add(playerInfo);
-    } //addPlayer(PlayerInfo playerInfo)
+    public void addPlayer(PlayerInfo p) {
+        players.add(p);
+    }
 
-    /**
-     * setStatus sets the current game status
-     * 
-     * @param status takes the current game status
-     */
     public void setStatus(GameStatus status) {
         this.status = status;
-    } //setStatus(GameStatus status)
+    }
 
     /**
-     * insitialize starts the game and creates the relevent game objects
-     * 
-     * @param players takes the players that are currently in the game
-     * @return the game state
+     * Initializes all game elements
+     * @param players List of players
+     * @return Initialized game state
      */
     public static GameState initialize(ArrayList<PlayerInfo> players) {
         GameState gs = new GameState();
@@ -78,10 +56,10 @@ public class GameState {
             ex.printStackTrace();
         }
         return gs;
-    } //initialize(ArrayList<PlayerInfo> players)
+    }
 
     /**
-     * initialize letter creates all of the letters in the game
+     * Initializes the letter bag
      */
     public void initializeLetters() {
         this.letters = new ArrayList<Character>();
@@ -91,6 +69,6 @@ public class GameState {
                 letters.add(l.getLetter());
             }
         }
-    } //initializeLetters()
+    }
 
 }

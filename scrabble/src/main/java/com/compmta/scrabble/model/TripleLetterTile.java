@@ -1,34 +1,23 @@
-/**
- * Group4: Scrabble
- * COMP4721: Software Design
- * Class: TripleLetterTile
- */
-
-//package
 package com.compmta.scrabble.model;
 
-//imports
 import com.compmta.scrabble.util.Letter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class TripleLetterTile extends Tile {
 
-    /**
-     * Constructor
-     * Creates a new instance of TripleLetterTile
-     * @param i row
-     * @param j column
-     */
-    public TripleLetterTile(int i, int j) {
-        super(i, j);
-    } //Contructor
+    private char letter;
 
     /**
-     * Overrides the parent method
-     * triples the score of the letter
+     *
+     * @param word the word the player has played
+     * @param score the score of the word
+     * @param index the index to check
+     * @return the updated score
      */
     @Override
-    public int effect(Tile[] word, int score, int index) {
-        if (index == word.length) return score + (Letter.map.get(word[index].getLetter()).getBaseScore()) * 3;
+    public int effect(String word, int score, int index) {
+        if (index == word.length()) return score + (Letter.map.get(word.charAt(index)).getBaseScore()) * 3;
         else return 0;
-    } //effect(Tile[] word, int score, int index)
+    }
 }

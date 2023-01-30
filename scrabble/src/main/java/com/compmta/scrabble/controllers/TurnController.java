@@ -1,74 +1,76 @@
-/**
- * Group4: Scrabble
- * COMP4721: Software Design
- * Class: TurnController
- */
-
-//package
 package com.compmta.scrabble.controllers;
 
 //imports
+import com.compmta.scrabble.controllers.DTO.GameStateInfo;
+import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.model.PlayerInfo;
 import com.compmta.scrabble.model.Turn;
+import com.compmta.scrabble.util.WordJudge;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
-//generates getters and setters
 @Getter
 @Setter
-
 @Component
-
 public class TurnController {
 
     //instance variables
-    private PlayerInfo currPlayer;
+    private static PlayerInfo currPlayer;
 
     /**
-     * startTurn begins the turn of the player
-     * 
-     * @return the current turn of the player
+     * Takes a TurnInfo DTO and applies the given requests if applicable.
+     *
+     * @return null if the GameState has not changed, the GameStateInfo after the effects of the turn if otherwise
      */
-    public Turn startTurn() {
-        // DO STUFF
-        return new Turn(currPlayer.getId());
+    public static GameStateInfo takeTurn(TurnInfo turnInfo) {
+        if (turnInfo == null) { // pass
+            return null;
+        }
+        // validate the move here, throw exception if invalid (TO-DO)
+        Turn newMove = new Turn(turnInfo.id(), turnInfo.word(), turnInfo.startCoords(), turnInfo.endCoords(), WordJudge.scoreMove(turnInfo));
+        GameStateController.getGameState().getTurnLog().add(newMove);
+        return applyTurn(newMove);
     } //startTurn()
+
+    private static GameStateInfo applyTurn(Turn turn) {
+        BoardController.placeWord(turn.getStartCoords(),turn.getEndCoords(), turn.getWord());
+        GameStateController.players.get(turn.getPlayerId()).updateScore(turn.getScore());
+        for (char c : turn.getWord().toCharArray()) {
+            removeTileFromRack(currPlayer.getRack().indexOf(c));
+        }
+
+        // add new letters to rack here
+
+        return new GameStateInfo(GameStateController.getGameState().getId(), GameStateController.gameState.getBoard(), GameStateController.gameState.getPlayers());
+    }
  
     /**
      * endTurn ends the turn of the player
      */
     private void endTurn() {
         // DO STUFF
-    } //endTurn()
+    }
 
     /**
      * removeTileFromRack removes the given tile from the rack
      * @param index of the tile
      */
-    public void removeTileFromRack(int index) {
+    public static void removeTileFromRack(int index) {
         currPlayer.getRack().remove(index);
-    } //removeTileFromRack(int index)
+    }
 
     /**
      * Checks if the word is part of the scrabble dictionary
      * 
-     * @param startCoords beginning corrdinate of word
-     * @param endCoords ending coordinate of word
-     * @param word the word in question
-     */
-    public void challengeWord(int[] startCoords, int[] endCoords, String word) {
-        // DO STUFF
-    }
-    /**
-     * 
-     * 
      * @param startCoords beginning coordinate of word
      * @param endCoords ending coordinate of word
-     * @param word the word
+     * @param word the word in question
+     * @param i the index of the word that was part of a previous turn
      */
-    public void chooseWord(int[] startCoords, int[] endCoords, String word) {
-        // DO STUFF
+    public void challengeWord(int[] startCoords, int[] endCoords, String word, int i) {
+        if (!WordJudge.verifyWord(word)) {
+            BoardController.removeWord(startCoords, endCoords, i);
+        }
     }
-
 }

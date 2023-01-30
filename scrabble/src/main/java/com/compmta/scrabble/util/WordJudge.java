@@ -8,7 +8,9 @@
 package com.compmta.scrabble.util;
 
 //imports
-import com.compmta.scrabble.model.Tile;
+import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.GameStateController;
+import com.compmta.scrabble.model.*;
 
 
 public class WordJudge {
@@ -17,19 +19,39 @@ public class WordJudge {
      * scoreWord scores the word
      * that the player has just played.
      * 
-     * @param word the word that the player has just played
-     * @return the score of the word
+     * @param move the turn information for the player has just played
+     * @return the score of the word inc. modifiers
      */
-    public static int scoreWord(Tile[] word) {
+    public static int scoreMove(TurnInfo move) {
+        String word = move.word();
+        int[] start = move.startCoords();
+        int[] end = move.endCoords();
+        Board board = GameStateController.getGameState().getBoard();
+
         int score = 0;
-        for (int i = 0; i < word.length; i++) {
-            Tile curr = word[i];
-            score = curr.effect(word, score, i);
+        int index = 0;
+        int direction;
+
+        // prevents repeated code blocks
+        if (start[0] == end[0]) {
+            direction = 1;
+        } else {
+            direction = 0;
         }
-        for (int i = 0; i < word.length; i++) {
-            Tile curr = word[i];
-            score = curr.effect(word, score, word.length);
+
+        for (int i = start[direction]; i <= end[direction]; i++) {
+            if (direction == 1) {
+                score = board.getTile(start[direction], index).effect(word,score,index);
+            } else {
+                score = board.getTile(index,start[direction]).effect(word,score,index);
+            }
+            index++;
         }
+
+        for (int i = start[direction]; i <= end[direction]; i++) {
+            score = board.getTile(start[direction], index).effect(word,score,word.length());
+        }
+
         return score;
     } //scoreWord(Tile[] word)
 
