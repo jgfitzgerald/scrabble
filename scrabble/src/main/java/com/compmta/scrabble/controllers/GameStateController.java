@@ -1,7 +1,11 @@
 package com.compmta.scrabble.controllers;
 
+import com.compmta.scrabble.controllers.DTO.GameStateInfo;
+import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
+import com.compmta.scrabble.model.Turn;
+import com.compmta.scrabble.util.WordJudge;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -61,26 +65,33 @@ public class GameStateController {
         }
         if (gameState == null) {
             gameState = GameState.initialize(playerList);
-            BoardController.board = gameState.getBoard();
+            TurnController.board = gameState.getBoard();
             for (PlayerInfo p : gameState.getPlayers()) {
-                drawLetters(p, INITIAL_LETTER_AMT);
+                gameState.drawLetters(p, INITIAL_LETTER_AMT);
             }
         }
     } //setUpGame()
 
-    /**
-     * Draws n letters into the players rack
-     * @param p The player
-     * @param n The number of letters to be drawn
-     */
-    public void drawLetters(PlayerInfo p, int n) {
-        Random r = new Random();
-        for (int i = 0; i < n; i++) {
-            int index = r.nextInt(gameState.getLetters().size());
-            char ch = gameState.getLetters().remove(index);
-            p.getRack().add(ch);
+    public GameStateInfo takeTurn(TurnInfo turnInfo) {
+        if (turnInfo == null) { // pass
+            return null;
         }
-        //return p;
+        // validate the move here, throw exception if invalid (TO-DO)
+        Turn newMove = new Turn(turnInfo.id(), turnInfo.word(), turnInfo.startCoords(), turnInfo.endCoords(), WordJudge.scoreMove(turnInfo));
+        GameStateController.getGameState().getTurnLog().add(newMove);
+        return this.applyTurn(newMove);
+    } //startTurn()
+
+    private GameStateInfo applyTurn(Turn turn) {
+        gameState.getBoard().placeWord(turn.getStartCoords(),turn.getEndCoords(), turn.getWord());
+        players.get(turn.getPlayerId()).updateScore(turn.getScore());
+        for (char c : turn.getWord().toCharArray()) {
+            gameState.removeTileFromRack(turn.getPlayerId(), players.get(turn.getPlayerId()).getRack().indexOf(c));
+        }
+
+        // add new letters to rack here
+
+        return new GameStateInfo(gameState.getId(), gameState.getBoard(), playerList);
     }
 
 }

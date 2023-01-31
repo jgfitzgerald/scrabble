@@ -25,9 +25,6 @@ public class WebSocketController {
     private TurnController turnController;
 
     @Autowired
-    private BoardController boardController;
-
-    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
     /**
@@ -94,7 +91,7 @@ public class WebSocketController {
     /**
      * Queries TurnController to challenge the turn with the specified turnInfo
      */
-    @PostMapping("/challenge")
+    /*@PostMapping("/challenge")
     public ResponseEntity<Void> challengeWord(@RequestBody TurnInfo turnInfo){
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
@@ -111,6 +108,6 @@ public class WebSocketController {
             log.info("Error: " + e.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
+    }*/
 
 }

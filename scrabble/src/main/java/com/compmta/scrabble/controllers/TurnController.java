@@ -3,6 +3,7 @@ package com.compmta.scrabble.controllers;
 //imports
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.model.Board;
 import com.compmta.scrabble.model.PlayerInfo;
 import com.compmta.scrabble.model.Turn;
 import com.compmta.scrabble.util.WordJudge;
@@ -17,6 +18,7 @@ public class TurnController {
 
     //instance variables
     private static PlayerInfo currPlayer;
+    static Board board;
 
     /**
      * Takes a TurnInfo DTO and applies the given requests if applicable.
@@ -35,7 +37,7 @@ public class TurnController {
 
 
     private static GameStateInfo applyTurn(Turn turn) {
-        BoardController.placeWord(turn.getStartCoords(),turn.getEndCoords(), turn.getWord());
+        board.placeWord(turn.getStartCoords(),turn.getEndCoords(), turn.getWord());
         GameStateController.players.get(turn.getPlayerId()).updateScore(turn.getScore());
         for (char c : turn.getWord().toCharArray()) {
             removeTileFromRack(currPlayer.getRack().indexOf(c));
@@ -71,7 +73,7 @@ public class TurnController {
      */
     public void challengeWord(int[] startCoords, int[] endCoords, String word, int i) {
         if (!WordJudge.verifyWord(word)) {
-            BoardController.removeWord(startCoords, endCoords, i);
+            board.removeWord(startCoords, endCoords, i);
         }
     }
 }
