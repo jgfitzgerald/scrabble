@@ -1,4 +1,3 @@
-import { grid } from '@mui/system';
 import React from 'react';
 
 const Board = (props) => {

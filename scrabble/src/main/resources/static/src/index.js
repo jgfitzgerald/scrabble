@@ -4,8 +4,11 @@ import './index.css';
 import { ThemeProvider } from '@emotion/react';
 import { createTheme } from '@mui/material/styles';
 import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
-import App from './App';
-import Home from './pages/Home';
+
+import Home from './Home';
+import Game from './pages/Game';
+import Rules from './pages/Rules';
+import Settings from './pages/Settings';
 
 // https://mui.com/material-ui/customization/default-theme/
 
@@ -34,8 +37,10 @@ root.render(
     <ThemeProvider theme={theme}>
       <Router>
         <Routes>
-          <Route path='/' element={<App/>} />
-          <Route path='/home' element={<Home/>} />
+          <Route path='/' element={<Home/>} />
+          <Route path='/play' element={<Game/>} />
+          <Route path='/rules' element={<Rules/>} />
+          <Route path='/settings' element={<Settings/>} />
         </Routes>
       </Router>
     </ThemeProvider>
