@@ -4,7 +4,7 @@ import com.compmta.scrabble.util.Letter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class TripleLetterTile extends Tile {
+public class RegularSquare extends Square {
 
     private char letter;
 
@@ -17,7 +17,7 @@ public class TripleLetterTile extends Tile {
      */
     @Override
     public int effect(String word, int score, int index) {
-        if (index == word.length()) return score + (Letter.map.get(word.charAt(index)).getBaseScore()) * 3;
-        else return 0;
-    }
+        return score + Letter.map.get(word.charAt(index)).getBaseScore();
+    }//effect(Tile[] word, int score, int index)
+
 }
