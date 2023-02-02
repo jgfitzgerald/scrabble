@@ -41,15 +41,15 @@ public class WordJudge {
 
         for (int i = start[direction]; i <= end[direction]; i++) {
             if (direction == 1) {
-                score = board.getTile(start[direction], index).effect(word,score,index);
+                score = board.getSquare(start[direction], index).effect(word,score,index);
             } else {
-                score = board.getTile(index,start[direction]).effect(word,score,index);
+                score = board.getSquare(index,start[direction]).effect(word,score,index);
             }
             index++;
         }
 
         for (int i = start[direction]; i <= end[direction]; i++) {
-            score = board.getTile(start[direction], index).effect(word,score,word.length());
+            score = board.getSquare(start[direction], index).effect(word,score,word.length());
         }
 
         return score;
