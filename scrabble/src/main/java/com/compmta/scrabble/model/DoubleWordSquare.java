@@ -1,10 +1,8 @@
 package com.compmta.scrabble.model;
 
 import com.compmta.scrabble.util.Letter;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-public class TripleWordTile extends Tile {
+public class DoubleWordSquare extends Square {
 
     private char letter;
 
@@ -18,7 +16,7 @@ public class TripleWordTile extends Tile {
     @Override
     public int effect(String word, int score, int index) {
         if (index == word.length()) {
-            return score * 3;
+            return score * 2;
         } else {
             return score + Letter.map.get(word.charAt(index)).getBaseScore();
         }

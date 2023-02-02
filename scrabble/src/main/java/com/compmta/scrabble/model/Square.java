@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public abstract class Tile {
+public abstract class Square {
 
     //instance variables
     private char letter;

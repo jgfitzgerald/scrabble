@@ -2,7 +2,7 @@ package com.compmta.scrabble.model;
 
 import com.compmta.scrabble.util.Letter;
 
-public class DoubleWordTile extends Tile {
+public class DoubleLetterSquare extends Square {
 
     private char letter;
 
@@ -15,11 +15,7 @@ public class DoubleWordTile extends Tile {
      */
     @Override
     public int effect(String word, int score, int index) {
-        if (index == word.length()) {
-            return score * 2;
-        } else {
-            return score + Letter.map.get(word.charAt(index)).getBaseScore();
-        }
+        if (index == word.length()) return score + (Letter.map.get(word.charAt(index)).getBaseScore()) * 2;
+        else return 0;
     }
-
 }
