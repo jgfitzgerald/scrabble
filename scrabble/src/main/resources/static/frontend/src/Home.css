@@ -1,0 +1,68 @@
+:root {
+  --bg-clr: #8c2b2b;
+  --text-clr: #bfbc95;
+  --random-red: #b63f4b;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+}
+
+.navigator {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-clr);
+
+  position: relative;
+  display: grid;
+  place-content: center;
+}
+
+.texture {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('assets/felt.png');
+  background-size: 100%;
+  opacity: 0.1;
+}
+
+.logo {
+  background-image: url('./assets/logo.png');
+  background-size: 100%;
+  background-repeat: no-repeat;
+  width: 250px;
+  height: 165px;
+}
+
+.loginMenu {
+  position: relative;
+  width: 400px;
+  height: 500px;
+  display: grid;
+  place-items: center;
+  color: white;
+
+  background-color: var(--random-red);
+  background-image: url('./assets/wood.jpg');
+  background-size: 100%;
+  background-repeat: no-repeat;
+  border-radius: 20px;
+  box-shadow: 0px 0px 20px 4px rgba(0, 0, 0, 0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
+  -webkit-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
+  -moz-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
+}
+
+.link {
+  width: 50%;
+}
+
+.homeMenuBtn {
+  width: 40%;
+}
+
+.userInput {
+  width: 80%;
+}
+
