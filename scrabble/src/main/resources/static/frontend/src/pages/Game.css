@@ -1,14 +1,10 @@
-:root {
-  --bg-clr: #8c2b2b;
-    --text-clr: #ffffff;
-}
 
-.homePage {
+
+.gamePage {
     width: 100vw;
     height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
+    display: grid;
+    place-items: center;
 }
 
 .header {
@@ -28,11 +24,12 @@
 
 .header h1 {
     padding-left: 1rem;
+    color: white;
 }
 
 .game {
     position: relative;
-    width: 650px;
+    height: clamp(300px, 65%, 750px);
     aspect-ratio: 1;
 }
 
@@ -61,37 +58,13 @@
 .tileRack {
     position: absolute;
     top: calc(100% + 2rem);
-    width: 100%;
+    width: clamp(400px, 100%, 800px);
     height: 65px;
     display: grid;
     place-items: center;
+    border-radius: 5px;
     background-color: var(--bg-clr);
     box-shadow: 0px 0px 20px 4px rgba(0, 0, 0, 0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
     -webkit-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
     -moz-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
-}
-
-.homeMenu {
-    position: relative;
-    width: 400px;
-    height: 500px;
-    /* display: grid;
-    place-items: center; */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-
-    background-color: var(--random-red);
-    background-image: url('../assets/wood.jpg');
-    background-size: 100%;
-    background-repeat: no-repeat;
-    border-radius: 20px;
-    box-shadow: 0px 0px 20px 4px rgba(0, 0, 0, 0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
-    -webkit-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
-    -moz-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
-}
-
-.homeMenuBtn {
-    width: 200px;
 }
