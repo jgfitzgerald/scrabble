@@ -17,7 +17,7 @@ public class GameStateController {
     private static final int MAX_PLAYERS = 4;
     private static final int NUM_PASSES = 3;
 
-    static GameState gameState;
+    private GameState gameState;
     static HashMap<String, PlayerInfo> players;
     private final ArrayList<PlayerInfo> playerList;
 
@@ -29,7 +29,7 @@ public class GameStateController {
     /**
      * @return The current game state
      */
-    public static GameState getGameState() {
+    public GameState getGameState() {
         return gameState;
     }
 

@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 @Getter
 @Setter
@@ -32,12 +31,13 @@ public class TurnController {
     /**
      * Takes a TurnInfo DTO and applies the given requests if applicable.
      *
-     * @return null if the GameState has not changed, the GameStateInfo after the effects of the turn if otherwise
+     * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): scoring, setting blank letters, exhchanging tiles/passing turns, challenging words
+    //TODO priority list (in order of highest to lowest): setting blank letters, scoring, challenging words
     public GameStateInfo takeTurn(TurnInfo turnInfo) {
         if (turnInfo == null) { // passed turn
+            gsController.getGameState().getTurnLog().add(null);
             return null;
         }
 
@@ -66,7 +66,7 @@ public class TurnController {
 
         System.out.println("Making new Turn");
         Turn newMove = new Turn(turnInfo);
-        GameStateController.getGameState().getTurnLog().add(newMove);
+        gsController.getGameState().getTurnLog().add(newMove);
 
         // TODO add logic for challenging words here
 
@@ -128,5 +128,34 @@ public class TurnController {
 
     static void setCurrPlayer(PlayerInfo in) {
         currPlayer = in;
+    }
+
+    public void exchangeLetters(String id, char[] toExchange) {
+        if (id.compareTo(currPlayer.getId()) != 0) {
+            throw new IllegalArgumentException("It is not your turn!");
+        }
+        for (char c : toExchange) {
+            if (!currPlayer.getRack().contains(c)) {
+                throw new IllegalArgumentException("One or more letters specified are not in the current player's rack.");
+            }
+        }
+
+        for (char c : toExchange) {
+            gsController.getGameState().getLetters().add(currPlayer.getRack().remove(currPlayer.getRack().indexOf(c)));
+        }
+
+        gsController.getGameState().getTurnLog().add(null);
+        gsController.getGameState().drawLetters(currPlayer);
+
+        this.endTurn();
+    }
+
+    public void passTurn(String name) {
+        if (name.compareTo(currPlayer.getId()) != 0) {
+            throw new IllegalArgumentException("It is not your turn!");
+        }
+
+        gsController.getGameState().getTurnLog().add(null);
+        this.endTurn();
     }
 }
