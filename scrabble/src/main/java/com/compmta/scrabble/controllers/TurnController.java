@@ -9,71 +9,153 @@ import com.compmta.scrabble.model.Turn;
 import com.compmta.scrabble.util.WordJudge;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
 
 @Getter
 @Setter
 @Component
+@Slf4j
 public class TurnController {
 
     //instance variables
-    private static PlayerInfo currPlayer;
+    @Autowired
+    private GameStateController gsController;
+    static PlayerInfo currPlayer;
     static Board board;
+    private int turnCount;
 
     /**
      * Takes a TurnInfo DTO and applies the given requests if applicable.
      *
-     * @return null if the GameState has not changed, the GameStateInfo after the effects of the turn if otherwise
+     * @return GameStateInfo after the effects of the turn
      */
-    public static GameStateInfo takeTurn(TurnInfo turnInfo) {
-        if (turnInfo == null) { // pass
+
+    //TODO priority list (in order of highest to lowest): setting blank letters, scoring, challenging words
+    public GameStateInfo takeTurn(TurnInfo turnInfo) {
+        if (turnInfo == null) { // passed turn
+            gsController.getGameState().getTurnLog().add(null);
             return null;
         }
-        // validate the move here, throw exception if invalid (TO-DO)
-        Turn newMove = new Turn(turnInfo.id(), turnInfo.word(), turnInfo.startCoords(), turnInfo.endCoords(), WordJudge.scoreMove(turnInfo));
-        GameStateController.getGameState().getTurnLog().add(newMove);
-        return applyTurn(newMove);
-    } //startTurn()
 
-
-    private static GameStateInfo applyTurn(Turn turn) {
-        board.placeWord(turn.getStartCoords(),turn.getEndCoords(), turn.getWord());
-        GameStateController.players.get(turn.getPlayerId()).updateScore(turn.getScore());
-        for (char c : turn.getWord().toCharArray()) {
-            removeTileFromRack(currPlayer.getRack().indexOf(c));
+        System.out.println("Checking curr player");
+        if (turnInfo.id().compareTo(currPlayer.getId()) != 0) {
+            throw new IllegalArgumentException("It is not your turn!");
+        }
+        System.out.println("Checking Turn count");
+        if (turnCount == 0) {
+            if (!board.validateInitialMove(turnInfo)) {
+                throw new IllegalArgumentException("Invalid initial move request. Please try again.");
+            }
+        } else if (!board.validateMove(turnInfo)) {
+            throw new IllegalArgumentException("Invalid move request. Please try again.");
         }
 
-        // add new letters to rack here
+        System.out.println("Getting letters on path");
+        ArrayList<Character> lettersOnPath = board.getLettersOnPath(turnInfo);
 
-        return new GameStateInfo(GameStateController.getGameState().getId(), GameStateController.gameState.getBoard(), GameStateController.gameState.getPlayers());
-    }
- 
-    /**
-     * endTurn ends the turn of the player
-     */
-    private void endTurn() {
-        // DO STUFF
-    }
+        System.out.println("Checking letters");
+        for (char c : turnInfo.word().toCharArray()) {
+            if (!currPlayer.getRack().contains(c) && !lettersOnPath.contains(c)) {
+                throw new IllegalArgumentException("Invalid word choice, rack or word path does not contain 1 or more letters.");
+            }
+        }
+
+        System.out.println("Making new Turn");
+        Turn newMove = new Turn(turnInfo);
+        gsController.getGameState().getTurnLog().add(newMove);
+
+        // TODO add logic for challenging words here
+
+        newMove.setScore(board.scoreMove(turnInfo));
+        currPlayer.updateScore(newMove.getScore());
+
+        System.out.println("Removing tiles from rack");
+        for (char c : turnInfo.word().toCharArray()) {
+            if (!lettersOnPath.contains(c)){
+                this.removeTileFromRack(currPlayer.getRack().indexOf(c));
+            } else { // prevents letters on path from being double counted
+                lettersOnPath.remove(lettersOnPath.indexOf(c));
+            }
+        }
+
+        System.out.println("Applying turn");
+        board.applyTurn(newMove);
+
+
+        gsController.getGameState().drawLetters(currPlayer);
+
+        System.out.println("Ending Turn");
+        this.endTurn();
+
+        return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getPlayerList());
+    } //startTurn()
 
     /**
      * removeTileFromRack removes the given tile from the rack
      * @param index of the tile
      */
-    public static void removeTileFromRack(int index) {
-        currPlayer.getRack().remove(index);
+    public void removeTileFromRack(int index) {
+        this.currPlayer.getRack().remove(index);
+    }
+
+    public void challengeWord(TurnInfo turn, ArrayList<Character> path) {
+        //FIXME needs to check ALL words played in the turn, not just primary word
+        if (!WordJudge.verifyWord(turn.word())) {
+            board.removeWord(turn.word(), turn.row(), turn.column(), turn.isHorizontal(), path);
+        }
     }
 
     /**
-     * Checks if the word is part of the scrabble dictionary
-     * 
-     * @param startCoords beginning coordinate of word
-     * @param endCoords ending coordinate of word
-     * @param word the word in question
-     * @param i the index of the word that was part of a previous turn
+     * Ends the turn of the current player.
      */
-    public void challengeWord(int[] startCoords, int[] endCoords, String word, int i) {
-        if (!WordJudge.verifyWord(word)) {
-            board.removeWord(startCoords, endCoords, i);
+    public void endTurn() {
+        if (gsController.getPlayerList().indexOf(currPlayer) == gsController.getPlayerList().size()-1) {
+            this.setCurrPlayer(gsController.getPlayerList().get(0));
+        } else {
+            int next = gsController.getPlayerList().indexOf(currPlayer) + 1;
+            this.setCurrPlayer(gsController.getPlayerList().get(next));
         }
+        turnCount++;
+
+        if (gsController.getGameState().checkEndConditions()) {
+            gsController.endGame();
+        }
+    }
+
+    static void setCurrPlayer(PlayerInfo in) {
+        currPlayer = in;
+    }
+
+    public void exchangeLetters(String id, char[] toExchange) {
+        if (id.compareTo(currPlayer.getId()) != 0) {
+            throw new IllegalArgumentException("It is not your turn!");
+        }
+        for (char c : toExchange) {
+            if (!currPlayer.getRack().contains(c)) {
+                throw new IllegalArgumentException("One or more letters specified are not in the current player's rack.");
+            }
+        }
+
+        for (char c : toExchange) {
+            gsController.getGameState().getLetters().add(currPlayer.getRack().remove(currPlayer.getRack().indexOf(c)));
+        }
+
+        gsController.getGameState().getTurnLog().add(null);
+        gsController.getGameState().drawLetters(currPlayer);
+
+        this.endTurn();
+    }
+
+    public void passTurn(String name) {
+        if (name.compareTo(currPlayer.getId()) != 0) {
+            throw new IllegalArgumentException("It is not your turn!");
+        }
+
+        gsController.getGameState().getTurnLog().add(null);
+        this.endTurn();
     }
 }
