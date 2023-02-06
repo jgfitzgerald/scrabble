@@ -24,7 +24,7 @@ public class TurnController {
     //instance variables
     @Autowired
     private GameStateController gsController;
-    private static PlayerInfo currPlayer;
+    static PlayerInfo currPlayer;
     static Board board;
     private int turnCount;
 

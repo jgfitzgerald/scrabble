@@ -61,11 +61,11 @@ public class WebSocketController {
     }
 
     /**
-     * Fetches the player with the specified id
+     * Fetches the current player
      */
-    @SendTo("/game/playerInfo")
-    public PlayerInfo getPlayer(@Payload PlayerId id) throws Exception {
-        return GameStateController.players.get(id.id());
+    @GetMapping("/currPlayer")
+    public ResponseEntity<PlayerInfo> getCurrPlayer() throws Exception {
+        return ResponseEntity.ok(turnController.currPlayer);
     }
 
     /**
