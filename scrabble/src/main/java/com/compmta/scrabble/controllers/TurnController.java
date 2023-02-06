@@ -42,6 +42,7 @@ public class TurnController {
         }
 
         System.out.println("Checking curr player");
+        System.out.println(turnInfo);
         if (turnInfo.id().compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
