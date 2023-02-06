@@ -1,5 +1,7 @@
 package com.compmta.scrabble.controllers;
 
+import com.compmta.scrabble.controllers.DTO.GameStateInfo;
+import com.compmta.scrabble.controllers.DTO.LettersInfo;
 import com.compmta.scrabble.controllers.DTO.PlayerId;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.model.GameState;
@@ -55,7 +57,7 @@ public class WebSocketController {
     @SendTo("/game/gameState")
     public ResponseEntity<GameState> getGame() throws Exception {
         log.info("fetch game");
-        return ResponseEntity.ok(GameStateController.getGameState());
+        return ResponseEntity.ok(game.getGameState());
     }
 
     /**
@@ -88,9 +90,48 @@ public class WebSocketController {
         }
     }
 
+    @PostMapping("/pass")
+    public ResponseEntity<Void> passTurn(@RequestBody PlayerId id) {
+        if(game.getGameState() == null){
+            log.info("Invalid request, game not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        try{
+            log.info("Received request to pass turn");
+            turnController.passTurn(id.id());
+            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        catch(Exception e){
+            log.info("Error: " + e.toString());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/exchange")
+    public ResponseEntity<Void> exchangeLetters(@RequestBody LettersInfo toExchange) {
+        if(game.getGameState() == null){
+            log.info("Invalid request, game not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        try{
+            log.info("Received request to exchange letters " + toExchange);
+            turnController.exchangeLetters(toExchange.id(), toExchange.letters());
+            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        catch(Exception e){
+            log.info("Error: " + e.toString());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     /**
      * Queries TurnController to challenge the turn with the specified turnInfo
      */
+    // TODO implement challenge functionality
     /*@PostMapping("/challenge")
     public ResponseEntity<Void> challengeWord(@RequestBody TurnInfo turnInfo){
         if(game.getGameState() == null){

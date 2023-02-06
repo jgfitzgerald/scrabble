@@ -22,38 +22,35 @@ public class WordJudge {
      * @param move the turn information for the player has just played
      * @return the score of the word inc. modifiers
      */
-    public static int scoreMove(TurnInfo move) {
+    /*public static int scoreMove(TurnInfo move) {
+
+        //TODO implement scoring words
+
         String word = move.word();
-        int[] start = move.startCoords();
-        int[] end = move.endCoords();
-        Board board = GameStateController.getGameState().getBoard();
+        int row = move.row();
+        int col = move.column();
+        boolean isHorizontal = move.isHorizontal();
 
         int score = 0;
-        int index = 0;
-        int direction;
 
-        // prevents repeated code blocks
-        if (start[0] == end[0]) {
-            direction = 1;
+        int i = row;
+        int j = col;
+
+        if (!isHorizontal) {
+            // find if word builds off another word to the left
         } else {
-            direction = 0;
-        }
-
-        for (int i = start[direction]; i <= end[direction]; i++) {
-            if (direction == 1) {
-                score = board.getTile(start[direction], index).effect(word,score,index);
-            } else {
-                score = board.getTile(index,start[direction]).effect(word,score,index);
-            }
-            index++;
-        }
-
-        for (int i = start[direction]; i <= end[direction]; i++) {
-            score = board.getTile(start[direction], index).effect(word,score,word.length());
+            while ()
+            // find if word builds off another word above
+            // run through "primary word" twice and add score
+            // run through word again, for each, see if there are letters on right or left and score those words
         }
 
         return score;
-    } //scoreWord(Tile[] word)
+    }*/
+
+    /*public int scoreWord(String word, int row, int col, boolean isHorizontal) {
+
+    }*/
 
     /**
      * verifyWord verifies the word that the player has just played
