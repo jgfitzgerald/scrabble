@@ -60,4 +60,7 @@ public class Letter {
         return map;
     }
 
+    public static Map<Character, Letter> getMap() {
+        return map;
+    }
 }
