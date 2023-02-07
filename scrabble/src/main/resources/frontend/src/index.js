@@ -9,6 +9,7 @@ import Home from './Home';
 import Game from './pages/Game';
 import Rules from './pages/Rules';
 import Settings from './pages/Settings';
+import NotFound from './pages/NotFound';
 
 // https://mui.com/material-ui/customization/default-theme/
 
@@ -41,6 +42,7 @@ root.render(
           <Route path='/play' element={<Game/>} />
           <Route path='/rules' element={<Rules/>} />
           <Route path='/settings' element={<Settings/>} />
+          <Route path='*' element={<NotFound/>} />
         </Routes>
       </HashRouter>
     </ThemeProvider>

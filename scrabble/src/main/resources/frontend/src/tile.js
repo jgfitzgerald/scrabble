@@ -33,6 +33,8 @@ const Tile = (props) => {
         'x': 8,
         'y': 4,
         'z': 10,
+        '4': '',
+        '0': ''
     };
 
     const tileStyle = {
