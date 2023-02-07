@@ -1,30 +1,44 @@
-/**
- * Group4: Scrabble
- * COMP4721: Software Design
- * Class: Letter
- */
-
-//Package
 package com.compmta.scrabble.util;
 
-//Import statements
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-
-//Generates getters
 @Getter
 @AllArgsConstructor
-public class Letter {
-    //Instance variables
+public enum Letter {
+
+    A('a', 1, 9),
+    B('b', 3, 2),
+    C('c', 3, 2),
+    D('d', 2, 4),
+    E('e', 1, 1),
+    F('f', 4, 2),
+    G('g', 2, 3),
+    H('h', 4, 2),
+    I('i', 1, 9),
+    J('j', 8, 1),
+    K('k', 5, 1),
+    L('l', 1, 4),
+    M('m', 3, 2),
+    N('n', 1, 6),
+    O('o', 1, 8),
+    P('p', 3, 2),
+    Q('q', 10, 1),
+    R('r', 1, 6),
+    S('s', 1, 4),
+    T('t', 1, 6),
+    U('u', 1, 4),
+    V('v', 4, 2),
+    W('w', 4, 2),
+    X('x', 8, 1),
+    Y('y', 4, 2),
+    Z('z', 10, 1),
+    BLANK(' ', 0, 2);
+
     private char letter;
     private int baseScore;
     private int initialAmount;
@@ -33,34 +47,9 @@ public class Letter {
 
     private static Map<Character, Letter> initializeMapping() {
         Map<Character, Letter> map = new HashMap<Character, Letter>();
-        try {
-            BufferedReader br = new BufferedReader(new FileReader("util" + File.separator + "scrabble_letter_data.csv")); 
-            try {   
-                int numLines = Integer.parseInt(br.readLine());
-                for(int i=0; i<numLines; i++) {
-                    String[] letterData = br.readLine().split(",");
-                    char let = letterData[0].charAt(0);
-                    int score = Integer.parseInt(letterData[1]);
-                    int amtOfLetters = Integer.parseInt(letterData[2]);
-
-                    map.put(let, new Letter(let, score, amtOfLetters));
-                }
-                br.close();
-            }
-            
-            catch(IOException e) {
-                e.printStackTrace();   
-            }
+        for (Letter l : Letter.values()) {
+            map.put(l.getLetter(), l);
         }
-        
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return map;
-    }
-
-    public static Map<Character, Letter> getMap() {
         return map;
     }
 }

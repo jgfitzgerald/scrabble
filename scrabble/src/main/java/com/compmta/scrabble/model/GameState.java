@@ -66,7 +66,7 @@ public class GameState {
      */
     public void initializeLetters() {
         this.letters = new ArrayList<Character>();
-        for (Letter l : Letter.getMap().values()) {
+        for (Letter l : Letter.values()) {
             int n = l.getInitialAmount();
             for (int i = 0; i < n; i++) {
                 letters.add(l.getLetter());
