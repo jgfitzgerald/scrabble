@@ -17,7 +17,8 @@ public class RegularSquare extends Square {
      */
     @Override
     public int effect(String word, int score, int index) {
-        return score + Letter.map.get(word.charAt(index)).getBaseScore();
+        if (index != word.length()) return Letter.map.get(word.charAt(index)).getBaseScore();
+        else return 0;
     }//effect(Tile[] word, int score, int index)
 
 }
