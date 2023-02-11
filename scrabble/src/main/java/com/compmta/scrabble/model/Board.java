@@ -344,9 +344,62 @@ public class Board {
         return score;
     }
 
+    /**
+     * Scores a singular word on the board.
+     * @param word The word
+     * @param row The staring row
+     * @param col The starting column
+     * @param isHorizontal True if horizontal
+     * @return The score of the word.
+     */
     public int scoreWord(String word, int row, int col, boolean isHorizontal) {
-        // TODO new logic for scoring individual words
         int score = 0;
+        int index = 0;
+        if (!isHorizontal) {
+            for (int i = row; i < row + word.length(); i++) {
+                if (!(blankLetterCoords[0][0] == row && blankLetterCoords[0][1] == col ||
+                        blankLetterCoords[1][0] == row && blankLetterCoords[1][1] == col)) {
+                    score += this.getSquare(i,col).effect(word,score,index);
+                }
+                index++;
+            }
+            for (int i = row; i < row + word.length(); i++) {
+                score += this.getSquare(i,col).effect(word,score,word.length());
+            }
+        } else {
+            for (int j = col; j < col + word.length(); j++) {
+                if (!(blankLetterCoords[0][0] != row && blankLetterCoords[0][1] != col ||
+                        blankLetterCoords[1][0] != row && blankLetterCoords[1][1] != col)) {
+                    score += this.getSquare(row,j).effect(word,score,index);
+                }
+                index++;
+            }
+            for (int j = col; j < col + word.length(); j++) {
+                score += this.getSquare(row,j).effect(word,score,word.length());
+            }
+        }
         return score;
+    }
+
+    /**
+     * Detects words created by the placement of a new move.
+     * @param turnInfo The word to be placed.
+     * @return A list of turn information specifying the words to be scored.
+     */
+    public ArrayList<TurnInfo> detectWords(TurnInfo turnInfo) {
+
+        String word = turnInfo.word();
+        int row = turnInfo.row();
+        int column = turnInfo.column();
+        boolean isHorizontal = turnInfo.isHorizontal();
+
+        if (!isHorizontal) {
+            // check above
+            // check left to right
+        } else {
+            // check left
+            // check above to below
+        }
+        return new ArrayList<>();
     }
 }
