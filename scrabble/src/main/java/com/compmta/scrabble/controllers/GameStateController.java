@@ -66,6 +66,7 @@ public class GameStateController {
                 gameState.drawLetters(p);
             }
             TurnController.setCurrPlayer(playerList.get(0));
+            TurnController.setChallengers(new ArrayList<>());
         }
     } //setUpGame()
 

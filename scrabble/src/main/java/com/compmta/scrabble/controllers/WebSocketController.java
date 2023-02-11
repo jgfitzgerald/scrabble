@@ -1,9 +1,6 @@
 package com.compmta.scrabble.controllers;
 
-import com.compmta.scrabble.controllers.DTO.GameStateInfo;
-import com.compmta.scrabble.controllers.DTO.LettersInfo;
-import com.compmta.scrabble.controllers.DTO.PlayerId;
-import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.DTO.*;
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -131,16 +128,15 @@ public class WebSocketController {
     /**
      * Queries TurnController to challenge the turn with the specified turnInfo
      */
-    // TODO implement challenge functionality
-    /*@PostMapping("/challenge")
-    public ResponseEntity<Void> challengeWord(@RequestBody TurnInfo turnInfo){
+    @PostMapping("/challenge")
+    public ResponseEntity<Void> challengeWord(@RequestBody ChallengeInfo challenge){
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info("Received request to challenge move " + turnInfo.toString());
-            turnController.challengeWord(turnInfo.startCoords(), turnInfo.endCoords(), turnInfo.word(), turnInfo.i());
+            log.info("Received request to challenge move " + challenge.toString());
+            turnController.challengeWord(challenge);
             simpMessagingTemplate.convertAndSend("/game", game.getGameState());
 
             return new ResponseEntity<>(HttpStatus.OK);
@@ -149,6 +145,6 @@ public class WebSocketController {
             log.info("Error: " + e.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }*/
+    }
 
 }

@@ -1,6 +1,7 @@
 package com.compmta.scrabble.controllers;
 
 //imports
+import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.model.Board;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 @Setter
 @Component
 @Slf4j
-public class TurnController {
+public class TurnController implements Runnable {
 
     //instance variables
     @Autowired
@@ -27,6 +28,7 @@ public class TurnController {
     static PlayerInfo currPlayer;
     static Board board;
     private int turnCount;
+    static ArrayList<String> challengers;
 
     /**
      * Takes a TurnInfo DTO and applies the given requests if applicable.
@@ -34,10 +36,14 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): setting blank letters, scoring, challenging words
-    public GameStateInfo takeTurn(TurnInfo turnInfo) {
+    //TODO priority list (in order of highest to lowest): challenging, setting blank letters, scoring
+    public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
+            return null;
+        }
+        if (challengers.contains(turnInfo.id())) {
+            challengers.remove(challengers.indexOf(turnInfo.id()));
             return null;
         }
 
@@ -71,7 +77,7 @@ public class TurnController {
 
         // TODO add logic for challenging words here
 
-        newMove.setScore(board.scoreMove(turnInfo));
+        newMove.setScore(board.scoreWord(turnInfo.word(), turnInfo.row(), turnInfo.column(), turnInfo.isHorizontal()));
         currPlayer.updateScore(newMove.getScore());
 
         System.out.println("Removing tiles from rack");
@@ -83,9 +89,12 @@ public class TurnController {
             }
         }
 
+        if (currPlayer.getRack().isEmpty()) {
+            currPlayer.updateScore(50);
+        }
+
         System.out.println("Applying turn");
         board.applyTurn(newMove);
-
 
         gsController.getGameState().drawLetters(currPlayer);
 
@@ -103,10 +112,46 @@ public class TurnController {
         this.currPlayer.getRack().remove(index);
     }
 
-    public void challengeWord(TurnInfo turn, ArrayList<Character> path) {
-        //FIXME needs to check ALL words played in the turn, not just primary word
-        if (!WordJudge.verifyWord(turn.word())) {
-            board.removeWord(turn.word(), turn.row(), turn.column(), turn.isHorizontal(), path);
+    /**
+     * Challenges the move with the specified info.
+     * @param challenge
+     * @return True if the challenge was successful, false otherwise
+     */
+    //FIXME this doesn't work yet lets not test it mkay
+    public boolean challengeWord(ChallengeInfo challenge) {
+
+        String challenger = challenge.challengerId();
+        String player = challenge.playerId();
+        TurnInfo turn = new TurnInfo(player, challenge.word(), challenge.row(), challenge.column(), challenge.isHorizontal());
+        if (player != currPlayer.getId()) {
+            throw new IllegalArgumentException("It is not this player's turn.");
+        }
+        ArrayList<TurnInfo> words = board.detectWords(turn);
+        int i = 0;
+        while (WordJudge.verifyWord(words.get(i).word()) && i < words.size()) {
+            i++;
+        }
+        if (i < words.size()) {
+            ArrayList<Character> path = board.getLettersOnPath(turn);
+            ArrayList<Character> removed = board.removeWord(turn.word(), turn.row(), turn.column(), turn.isHorizontal(), path);
+
+            // return to rack
+            int returned = currPlayer.getRack().size() - removed.size();
+            for (int j = returned; j < currPlayer.getRack().size(); j++) {
+                gsController.getGameState().getLetters().add(currPlayer.getRack().remove(j));
+            }
+            for (char c : removed) {
+                currPlayer.getRack().add(c);
+            }
+
+            currPlayer.updateScore(-1 * board.scoreMove(turn));
+            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size()-1);
+            gsController.getGameState().getTurnLog().add(null);
+            return true;
+
+        } else {
+            challengers.add(challenger);
+            return false;
         }
     }
 
@@ -129,6 +174,10 @@ public class TurnController {
 
     static void setCurrPlayer(PlayerInfo in) {
         currPlayer = in;
+    }
+
+    static void setChallengers(ArrayList<String> in) {
+        challengers = in;
     }
 
     public void exchangeLetters(String id, char[] toExchange) {
@@ -158,5 +207,14 @@ public class TurnController {
 
         gsController.getGameState().getTurnLog().add(null);
         this.endTurn();
+    }
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            System.out.println("Word challenged.");
+        }
     }
 }
