@@ -41,6 +41,10 @@ public class WebSocketController {
      */
     @PostMapping("/start")
     public ResponseEntity<Void> start() {
+        if (game.getGameState() != null) {
+            log.info("Invalid request, game has already started.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         log.info("starting...");
         game.setUpGame();
         simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());

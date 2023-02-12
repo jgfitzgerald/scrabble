@@ -4,7 +4,9 @@ package com.compmta.scrabble.controllers;
 import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.DTO.WordInfo;
 import com.compmta.scrabble.model.Board;
+import com.compmta.scrabble.model.Dictionary;
 import com.compmta.scrabble.model.PlayerInfo;
 import com.compmta.scrabble.model.Turn;
 import com.compmta.scrabble.util.WordJudge;
@@ -20,7 +22,7 @@ import java.util.ArrayList;
 @Setter
 @Component
 @Slf4j
-public class TurnController implements Runnable {
+public class TurnController {
 
     //instance variables
     @Autowired
@@ -36,7 +38,7 @@ public class TurnController implements Runnable {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): challenging, setting blank letters, scoring
+    //TODO priority list (in order of highest to lowest): adding played words to word list, setting blank letters, challenging, ending the game
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
@@ -47,12 +49,10 @@ public class TurnController implements Runnable {
             return null;
         }
 
-        System.out.println("Checking curr player");
         System.out.println(turnInfo);
         if (turnInfo.id().compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
-        System.out.println("Checking Turn count");
         if (turnCount == 0) {
             if (!board.validateInitialMove(turnInfo)) {
                 throw new IllegalArgumentException("Invalid initial move request. Please try again.");
@@ -61,10 +61,8 @@ public class TurnController implements Runnable {
             throw new IllegalArgumentException("Invalid move request. Please try again.");
         }
 
-        System.out.println("Getting letters on path");
         ArrayList<Character> lettersOnPath = board.getLettersOnPath(turnInfo);
 
-        System.out.println("Checking letters");
         for (char c : turnInfo.word().toCharArray()) {
             if (!currPlayer.getRack().contains(c) && !lettersOnPath.contains(c)) {
                 throw new IllegalArgumentException("Invalid word choice, rack or word path does not contain 1 or more letters.");
@@ -75,9 +73,7 @@ public class TurnController implements Runnable {
         Turn newMove = new Turn(turnInfo);
         gsController.getGameState().getTurnLog().add(newMove);
 
-        // TODO add logic for challenging words here
-
-        newMove.setScore(board.scoreWord(turnInfo.word(), turnInfo.row(), turnInfo.column(), turnInfo.isHorizontal()));
+        newMove.setScore(board.scoreMove(turnInfo));
         currPlayer.updateScore(newMove.getScore());
 
         System.out.println("Removing tiles from rack");
@@ -112,11 +108,6 @@ public class TurnController implements Runnable {
         this.currPlayer.getRack().remove(index);
     }
 
-    /**
-     * Challenges the move with the specified info.
-     * @param challenge
-     * @return True if the challenge was successful, false otherwise
-     */
     //FIXME this doesn't work yet lets not test it mkay
     public boolean challengeWord(ChallengeInfo challenge) {
 
@@ -126,9 +117,9 @@ public class TurnController implements Runnable {
         if (player != currPlayer.getId()) {
             throw new IllegalArgumentException("It is not this player's turn.");
         }
-        ArrayList<TurnInfo> words = board.detectWords(turn);
+        ArrayList<WordInfo> words = board.detectWords(turn);
         int i = 0;
-        while (WordJudge.verifyWord(words.get(i).word()) && i < words.size()) {
+        while (Dictionary.verifyWord(words.get(i).word()) && i < words.size()) {
             i++;
         }
         if (i < words.size()) {
@@ -207,14 +198,5 @@ public class TurnController implements Runnable {
 
         gsController.getGameState().getTurnLog().add(null);
         this.endTurn();
-    }
-
-    @Override
-    public void run() {
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            System.out.println("Word challenged.");
-        }
     }
 }
