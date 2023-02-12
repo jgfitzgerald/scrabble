@@ -1,9 +1,8 @@
 package com.compmta.scrabble.model;
 
 //imports
+
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
-import com.compmta.scrabble.util.WordJudge;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,7 +1,5 @@
 package com.compmta.scrabble.model;
 
-import com.compmta.scrabble.controllers.DTO.GameStateInfo;
-import com.compmta.scrabble.controllers.GameStateController;
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +7,10 @@ import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.UUID;
 
 @NoArgsConstructor
 @Getter
@@ -21,7 +22,6 @@ public class GameState {
     private int numPlayers;
     private GameStatus status;
     private ArrayList<Character> letters;
-    private HashSet<String> playedWords;
     private ArrayList<Turn> turnLog;
     private Board board;
 
@@ -50,7 +50,6 @@ public class GameState {
         gs.setStatus(GameStatus.IN_PROGRESS);
         gs.setBoard(new Board());
         gs.initializeLetters();
-        gs.setPlayedWords(new HashSet<String>());
         gs.setTurnLog(new ArrayList<Turn>());
         File dict = new File("docs/Collins Scrabble Words (2019).txt");
         try {

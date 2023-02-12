@@ -1,6 +1,7 @@
 package com.compmta.scrabble.controllers;
 
 //imports
+
 import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
@@ -9,7 +10,6 @@ import com.compmta.scrabble.model.Board;
 import com.compmta.scrabble.model.Dictionary;
 import com.compmta.scrabble.model.PlayerInfo;
 import com.compmta.scrabble.model.Turn;
-import com.compmta.scrabble.util.WordJudge;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

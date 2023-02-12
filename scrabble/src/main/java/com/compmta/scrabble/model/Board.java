@@ -1,9 +1,7 @@
 package com.compmta.scrabble.model;
 
-import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.controllers.DTO.WordInfo;
-import com.compmta.scrabble.controllers.GameStateController;
 import lombok.Getter;
 import lombok.Setter;
 

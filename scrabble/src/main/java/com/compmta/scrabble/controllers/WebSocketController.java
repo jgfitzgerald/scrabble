@@ -1,16 +1,18 @@
 package com.compmta.scrabble.controllers;
 
-import com.compmta.scrabble.controllers.DTO.*;
+import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
+import com.compmta.scrabble.controllers.DTO.LettersInfo;
+import com.compmta.scrabble.controllers.DTO.PlayerId;
+import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
 
 @RestController
 @Slf4j
