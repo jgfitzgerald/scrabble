@@ -38,7 +38,7 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): adding played words to word list, setting blank letters, challenging, ending the game
+    //TODO priority list (in order of highest to lowest): setting blank letters, challenging, ending the game
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
