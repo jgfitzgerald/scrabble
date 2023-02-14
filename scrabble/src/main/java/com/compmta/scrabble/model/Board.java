@@ -272,16 +272,16 @@ public class Board {
                 if (c != DEFAULT) {
                     return true;
                 }
-                if (i == row && i > 1) { // check above
+                if (i == row) { // check above
                     if (i-1 >= 0 && this.getSquare(i-1,col).getLetter() != DEFAULT) return true;
                 }
-                if (i == word.length() - 1) { // check below
-                    if (i+1 > BOARD_SIZE && this.getSquare(i+1,col).getLetter() != DEFAULT) return true;
+                if (i == row + word.length() - 1) { // check below
+                    if (i+1 < BOARD_SIZE && this.getSquare(i+1,col).getLetter() != DEFAULT) return true;
                 }
 
                 // check left and right
                 if (col-1 >= 0 && this.getSquare(i,col-1).getLetter() != DEFAULT) return true;
-                if (col+1 > BOARD_SIZE && this.getSquare(i,col+1).getLetter() != DEFAULT) return true;
+                if (col+1 < BOARD_SIZE && this.getSquare(i,col+1).getLetter() != DEFAULT) return true;
             }
         } else {
             for (int j = col; j < col + word.length(); j++) {
@@ -294,14 +294,15 @@ public class Board {
                 if (j == col) { // check left
                     if (j-1 >= 0 && this.getSquare(row,j-1).getLetter() != DEFAULT) return true;
                 }
-                if (j == word.length() - 1) { // check right
-                    if (j+1 >= BOARD_SIZE && this.getSquare(row,j+1).getLetter() != DEFAULT) return true;
+                if (j == col + word.length() - 1) { // check right
+                    if (j+1 < BOARD_SIZE && this.getSquare(row,j+1).getLetter() != DEFAULT) return true;
                 }
                 // check above and below
                 if (row-1 >= 0 && this.getSquare(row-1,j).getLetter() != DEFAULT) return true;
-                if (row+1 >= 0 && this.getSquare(row+1,j).getLetter() != DEFAULT) return true;
+                if (row+1 < BOARD_SIZE && this.getSquare(row+1,j).getLetter() != DEFAULT) return true;
             }
         }
+        System.out.println("has surrounding tiles");
         return false;
     }
 

@@ -50,6 +50,9 @@ public class TurnController {
         }
 
         System.out.println(turnInfo);
+        if (gsController.getGameState().getPlayerMap().get(turnInfo.id()) == null) {
+            throw new IllegalArgumentException("This player is not in the game.");
+        }
         if (turnInfo.id().compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }

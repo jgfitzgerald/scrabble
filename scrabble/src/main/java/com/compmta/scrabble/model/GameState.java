@@ -17,6 +17,7 @@ import java.util.UUID;
 @Setter
 public class GameState {
     private String id;
+
     private ArrayList<PlayerInfo> players;
     private HashMap<String, PlayerInfo> playerMap;
     private int numPlayers;
