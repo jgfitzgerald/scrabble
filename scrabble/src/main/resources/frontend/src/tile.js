@@ -1,6 +1,6 @@
 import React from 'react';
 import background from './assets/wood.jpg';
-import { Draggable } from 'react-beautiful-dnd';
+import { DragDropContainer } from 'react-drag-drop-container';
 
 const Tile = (props) => {
     const char = props.char;
@@ -56,12 +56,12 @@ const Tile = (props) => {
         right: 3,
     };
 
-    // return <Draggable key={char} draggableId={char} type='tile' index={props.index}>
-        return <div style={tileStyle}>
+    return <DragDropContainer targetKey="square">
+        <div style={tileStyle}>
             <h1>{char.toUpperCase()}</h1>
             <p style={valueStyle}>{values[char]}</p>
         </div>
-    // </Draggable>
+    </DragDropContainer>
 }
 
 export default Tile;

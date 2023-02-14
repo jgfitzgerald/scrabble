@@ -4,11 +4,8 @@ import Button from '@mui/material/Button';
 import axios from 'axios';
 import Board from '../board.js';
 import Tile from '../tile.js';
-// import SockJS from 'sockjs-client';
 import Stomp, {Client} from '@stomp/stompjs';
-// import { Client } from 'sockjs-client';
-// import { SOCKET_URL } from 'stompjs';
-import { DragDropContext, Droppable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable } from 'react-drag-drop-container';
 
 
 const Game = (props) => {
@@ -17,8 +14,9 @@ const Game = (props) => {
     let onConnected = () => {
       console.log("connected");
       client.subscribe("/game/gameState", (response) => {
-        if (response.status === axios.HttpStatusCode.Ok) {
-          let data = response.data;
+        console.log(response);
+        if (response.body) {
+          let data = JSON.parse(response.body);
           console.log('DATA:::');
           console.log(data);
           setState(data);
@@ -87,7 +85,7 @@ const Game = (props) => {
   const getState = () => {
     axios.get('/gamestate', {
     }).then((response) => {
-      // console.log(response);
+      console.log(response);
       if (response.status === axios.HttpStatusCode.Ok) {
         let data = response.data;
         console.log('DATA:::');
@@ -159,7 +157,7 @@ const Game = (props) => {
       <div className='game'>
         <Board />
         <div className="players">
-          {state.players.map( (player, key) => 
+          {state.players.map( (player) =>
             <div className={"namePlate playing"}>
               <p>{player.id}</p>
               <p>({player.totalScore} points)</p>
@@ -168,8 +166,8 @@ const Game = (props) => {
         </div>
         {/* <Droppable droppableId="tile-rack" type="tile" isDropDisabled={false}> */}
           <div className="tileRack" style={{gridTemplateColumns: `repeat(${numTiles}, 1fr)`}}>
-            {playerData.rack.map( (char, key) => 
-              <Tile char={char} index={key} />
+            {playerData.rack.map( (char) =>
+              <Tile char={char} />
             )}
           </div>
         {/* </Droppable> */}
