@@ -56,12 +56,21 @@ const Tile = (props) => {
         right: 3,
     };
 
-    return <DragDropContainer targetKey="square">
-        <div style={tileStyle}>
-            <h1>{char.toUpperCase()}</h1>
-            <p style={valueStyle}>{values[char]}</p>
-        </div>
-    </DragDropContainer>
+    const onPlace = (e) => {
+        console.log('placed on square ', e.dropData.name);
+    };
+
+    return <DragDropContainer
+        targetKey="square"
+        dragData={{letter: char}}
+        onDrop={onPlace}
+        render= {() => {
+            return <div style={tileStyle}>
+                <h1>{char.toUpperCase()}</h1>
+                <p style={valueStyle}>{values[char]}</p>
+            </div>
+        }}
+    />
 }
 
 export default Tile;
