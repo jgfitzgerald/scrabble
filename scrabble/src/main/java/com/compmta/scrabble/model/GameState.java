@@ -28,7 +28,7 @@ public class GameState {
 
     private static Dictionary dictionary;
 
-    private static final int RACK_SIZE = 7;
+    private static final int RACK_SIZE = 50;
 
     public void addPlayer(PlayerInfo p) {
         players.add(p);

@@ -11,7 +11,7 @@ import lombok.Setter;
 public class Turn {
 
     private String playerId;
-    private String word;
+    private char[] word;
     private int row;
     private int column;
 

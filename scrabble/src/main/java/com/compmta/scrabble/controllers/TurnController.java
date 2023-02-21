@@ -2,12 +2,9 @@ package com.compmta.scrabble.controllers;
 
 //imports
 
-import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
-import com.compmta.scrabble.controllers.DTO.WordInfo;
 import com.compmta.scrabble.model.Board;
-import com.compmta.scrabble.model.Dictionary;
 import com.compmta.scrabble.model.PlayerInfo;
 import com.compmta.scrabble.model.Turn;
 import lombok.Getter;
@@ -17,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 @Getter
 @Setter
@@ -38,7 +36,7 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): setting blank letters, challenging, ending the game
+    //TODO priority list (in order of highest to lowest): fixing detect word, challenging, ending the game
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
@@ -64,11 +62,39 @@ public class TurnController {
             throw new IllegalArgumentException("Invalid move request. Please try again.");
         }
 
-        ArrayList<Character> lettersOnPath = board.getLettersOnPath(turnInfo);
+        char[] word = turnInfo.word();
+        int row = turnInfo.row();
+        int col = turnInfo.column();
+        boolean isHorizontal = turnInfo.isHorizontal();
 
-        for (char c : turnInfo.word().toCharArray()) {
-            if (!currPlayer.getRack().contains(c) && !lettersOnPath.contains(c)) {
-                throw new IllegalArgumentException("Invalid word choice, rack or word path does not contain 1 or more letters.");
+        if (Collections.frequency(currPlayer.getRack(), ' ') != turnInfo.blanks().size()) {
+            throw new IllegalArgumentException("Invalid argument. Too many or two few blank letters were specified.");
+        }
+
+        if (!turnInfo.blanks().isEmpty()) {
+            int i = 0;
+            for (char c : word) {
+                if (turnInfo.blanks().get(c) != null && row == turnInfo.blanks().get(c)[0] && col == turnInfo.blanks().get(c)[1]) {
+                    word[i] = Board.DEFAULT;
+                }
+                i++;
+                if (!isHorizontal) row++; else col++;
+            }
+        }
+
+        System.out.println(new String(word));
+
+        for (char c : word) {
+            if (c != Board.DEFAULT && !currPlayer.getRack().contains(c)) {
+                throw new IllegalArgumentException("Invalid word choice, rack does not contain 1 or more required letters: " + c);
+            }
+        }
+
+        System.out.println("Removing tiles from rack");
+        System.out.println(new String(word));
+        for (char c : word) {
+            if (c != Board.DEFAULT) {
+                currPlayer.getRack().remove(currPlayer.getRack().indexOf(c));
             }
         }
 
@@ -76,17 +102,15 @@ public class TurnController {
         Turn newMove = new Turn(turnInfo);
         gsController.getGameState().getTurnLog().add(newMove);
 
-        newMove.setScore(board.scoreMove(turnInfo));
-        currPlayer.updateScore(newMove.getScore());
-
-        System.out.println("Removing tiles from rack");
-        for (char c : turnInfo.word().toCharArray()) {
-            if (!lettersOnPath.contains(c)){
-                this.removeTileFromRack(currPlayer.getRack().indexOf(c));
-            } else { // prevents letters on path from being double counted
-                lettersOnPath.remove(lettersOnPath.indexOf(c));
-            }
+        for (char c : turnInfo.blanks().keySet()) {
+            board.setBlankLetter(turnInfo.blanks().get(c)[0], turnInfo.blanks().get(c)[1], c);
+            currPlayer.getRack().remove(currPlayer.getRack().indexOf(' '));
         }
+
+        //TODO fix scoring (again)
+        //int score = board.scoreMove(turnInfo);
+        newMove.setScore(0);
+        currPlayer.updateScore(0);
 
         if (currPlayer.getRack().isEmpty()) {
             currPlayer.updateScore(50);
@@ -99,20 +123,13 @@ public class TurnController {
 
         System.out.println("Ending Turn");
         this.endTurn();
+        turnCount++;
 
         return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getPlayerList());
     } //startTurn()
 
-    /**
-     * removeTileFromRack removes the given tile from the rack
-     * @param index of the tile
-     */
-    public void removeTileFromRack(int index) {
-        this.currPlayer.getRack().remove(index);
-    }
-
     //FIXME this doesn't work yet lets not test it mkay
-    public boolean challengeWord(ChallengeInfo challenge) {
+    /*public boolean challengeWord(ChallengeInfo challenge) {
 
         String challenger = challenge.challengerId();
         String player = challenge.playerId();
@@ -147,7 +164,7 @@ public class TurnController {
             challengers.add(challenger);
             return false;
         }
-    }
+    }*/
 
     /**
      * Ends the turn of the current player.
@@ -159,7 +176,6 @@ public class TurnController {
             int next = gsController.getPlayerList().indexOf(currPlayer) + 1;
             this.setCurrPlayer(gsController.getPlayerList().get(next));
         }
-        turnCount++;
 
         if (gsController.getGameState().checkEndConditions()) {
             gsController.endGame();

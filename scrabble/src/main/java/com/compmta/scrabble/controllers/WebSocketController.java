@@ -81,7 +81,7 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info("Received request to place word " + turnInfo.toString());
+            log.info(String.format("Received request from %s to place letters: " + turnInfo.word().toString(), turnInfo.id()));
             turnController.takeTurn(turnInfo);
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
 
@@ -100,7 +100,7 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info("Received request to pass turn");
+            log.info(String.format("Received request to pass %s's turn.",id));
             turnController.passTurn(id.id());
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
 
@@ -119,7 +119,7 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info("Received request to exchange letters " + toExchange);
+            log.info(String.format("Received request from %s to exchange letters: " + toExchange.letters().toString(), toExchange.id()));
             turnController.exchangeLetters(toExchange.id(), toExchange.letters());
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
 
@@ -134,7 +134,7 @@ public class WebSocketController {
     /**
      * Queries TurnController to challenge the turn with the specified turnInfo
      */
-    @PostMapping("/challenge")
+    /*@PostMapping("/challenge")
     public ResponseEntity<Void> challengeWord(@RequestBody ChallengeInfo challenge){
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
@@ -151,6 +151,6 @@ public class WebSocketController {
             log.info("Error: " + e.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
+    }*/
 
 }
