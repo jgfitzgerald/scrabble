@@ -38,7 +38,10 @@ public class Board {
         this.board = this.initialize();
     }
 
-    //This is sort of a logistical nightmare honestly im sorry for this
+    /**
+     * Initializes the default board.
+     * @return The board array.
+     */
     private Square[][] initialize() {
         Square[][] temp = new Square[BOARD_SIZE][BOARD_SIZE];
         blanks = new HashMap<>();
@@ -203,10 +206,19 @@ public class Board {
         }
     } //setBlankLetter(int[] coords, char letter)
 
+    /**
+     * Applies the turn's effects.
+     * @param turn The turn
+     */
     public void applyTurn(Turn turn) {
         this.placeWord(turn.getWord(), turn.getRow(), turn.getColumn(), turn.isHorizontal());
     }
 
+    /**
+     * Validates the first scrabble move (one coordinate must be [7,7])
+     * @param turnInfo The initial move
+     * @return True if the move is valid, false if illegal
+     */
     public boolean validateInitialMove(TurnInfo turnInfo) {
 
         char[] word = turnInfo.word();
@@ -233,6 +245,11 @@ public class Board {
         return false;
     }
 
+    /**
+     * Validates a move.
+     * @param turnInfo The requested move.
+     * @return True if the word is legal, false otherwise.
+     */
     public boolean validateMove(TurnInfo turnInfo) {
         char[] word = turnInfo.word();
         int row = turnInfo.row();
@@ -317,6 +334,12 @@ public class Board {
         System.out.println("has surrounding tiles");
         return false;
     }
+
+    /**
+     * Scores an entire move.
+     * @param move The requested move.
+     * @return The total score of all words formed by the move.
+     */
     public int scoreMove(TurnInfo move) {
 
         int score = 0;

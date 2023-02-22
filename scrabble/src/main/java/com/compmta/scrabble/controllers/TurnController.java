@@ -39,7 +39,7 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): challenging
+    //TODO priority list (in order of highest to lowest): unplayed letters, challenging
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
@@ -129,7 +129,6 @@ public class TurnController {
         return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getPlayerList());
     } //startTurn()
 
-    //FIXME this doesn't work yet lets not test it mkay
     /*public boolean challengeWord(ChallengeInfo challenge) {
 
         String challenger = challenge.challengerId();
@@ -191,6 +190,11 @@ public class TurnController {
         challengers = in;
     }
 
+    /**
+     * Exchanges the specified letters and draws new ones into the player's rack
+     * @param id The player id
+     * @param toExchange An array of characters to be exchanged
+     */
     public void exchangeLetters(String id, char[] toExchange) {
         if (id.compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
@@ -211,6 +215,10 @@ public class TurnController {
         this.endTurn();
     }
 
+    /**
+     * Passes the turn of the current player.
+     * @param name The current player
+     */
     public void passTurn(String name) {
         if (name.compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
@@ -220,6 +228,10 @@ public class TurnController {
         this.endTurn();
     }
 
+    /**
+     * Ends the game. Sets the status to finished, preventing further requests.
+     * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
+     */
     private void endGame() {
         gsController.getGameState().setStatus(FINISHED);
         PlayerInfo currWinner = null;

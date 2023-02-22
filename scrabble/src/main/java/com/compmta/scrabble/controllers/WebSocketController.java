@@ -70,7 +70,7 @@ public class WebSocketController {
     }
 
     /**
-     * Fetches the current player
+     * Fetches the current player, or the winner if the game has finished
      */
     @GetMapping("/currPlayer")
     public ResponseEntity<PlayerInfo> getCurrPlayer() throws Exception {
@@ -103,6 +103,10 @@ public class WebSocketController {
         }
     }
 
+    /**
+     * Allows a player to pass their turn
+     * @param id The player who wishes to pass their turn
+     */
     @PostMapping("/pass")
     public ResponseEntity<Void> passTurn(@RequestBody PlayerId id) {
         if (game.getGameState().getStatus() == FINISHED) {
@@ -126,6 +130,10 @@ public class WebSocketController {
         }
     }
 
+    /**
+     * Allows a player to exchange letters
+     * @param toExchange DTO containing the player and the letters they wish to exchange
+     */
     @PostMapping("/exchange")
     public ResponseEntity<Void> exchangeLetters(@RequestBody LettersInfo toExchange) {
         if (game.getGameState().getStatus() == FINISHED) {
@@ -149,6 +157,11 @@ public class WebSocketController {
         }
     }
 
+    /**
+     * Allows a player to vote to end the game (eg. if they think there are no possible moves left)
+     * If all players vote to end the game, then the game ends on the next turn.
+     * @param vote
+     */
     @PostMapping("/voteToEnd")
     public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
         System.out.println(vote.gameId());
