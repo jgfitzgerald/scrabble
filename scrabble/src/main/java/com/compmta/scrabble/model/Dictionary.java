@@ -36,6 +36,6 @@ public class Dictionary {
     }
 
     public static boolean verifyWord(String word) {
-        return dictionary.contains(word);
+        return dictionary.contains(word.toUpperCase());
     }
 }

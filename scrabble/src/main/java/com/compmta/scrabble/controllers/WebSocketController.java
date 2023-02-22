@@ -1,9 +1,9 @@
 package com.compmta.scrabble.controllers;
 
-import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.LettersInfo;
 import com.compmta.scrabble.controllers.DTO.PlayerId;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.DTO.VoteInfo;
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import static com.compmta.scrabble.model.GameStatus.FINISHED;
 
 @RestController
 @Slf4j
@@ -33,6 +35,10 @@ public class WebSocketController {
     */
     @PostMapping("/join")
     public ResponseEntity<Void> join(@RequestBody PlayerId id) throws Exception {
+        if (game.getGameState() != null) {
+            log.info("Invalid request, game is already in progress.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         log.info("join request for id: {}", id);
         game.joinGame(id.id());
         return new ResponseEntity<>(HttpStatus.OK);
@@ -44,7 +50,7 @@ public class WebSocketController {
     @PostMapping("/start")
     public ResponseEntity<Void> start() {
         if (game.getGameState() != null) {
-            log.info("Invalid request, game has already started.");
+            log.info("Invalid request, game is already in progress.");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         log.info("starting...");
@@ -76,6 +82,10 @@ public class WebSocketController {
      */
     @PostMapping("/move")
     public ResponseEntity<Void> placeWord(@RequestBody TurnInfo turnInfo){
+        if (game.getGameState().getStatus() == FINISHED) {
+            log.info("This game has already ended.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -95,6 +105,10 @@ public class WebSocketController {
 
     @PostMapping("/pass")
     public ResponseEntity<Void> passTurn(@RequestBody PlayerId id) {
+        if (game.getGameState().getStatus() == FINISHED) {
+            log.info("This game has already ended.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -114,6 +128,10 @@ public class WebSocketController {
 
     @PostMapping("/exchange")
     public ResponseEntity<Void> exchangeLetters(@RequestBody LettersInfo toExchange) {
+        if (game.getGameState().getStatus() == FINISHED) {
+            log.info("This game has already ended.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -123,6 +141,30 @@ public class WebSocketController {
             turnController.exchangeLetters(toExchange.id(), toExchange.letters());
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
 
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        catch(Exception e){
+            log.info("Error: " + e.toString());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/voteToEnd")
+    public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
+        System.out.println(vote.gameId());
+        System.out.println(game.getGameState().getId());
+        if (game.getGameState().getStatus() == FINISHED) {
+            log.info("This game has already ended.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        if (game.getGameState() == null || !game.getGameState().getId().equals(vote.gameId())){
+            log.info("Invalid request, game not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        try{
+            log.info(String.format("Received request from %s to end game.", vote.playerId()));
+            game.voteToEnd(vote.playerId());
+            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){

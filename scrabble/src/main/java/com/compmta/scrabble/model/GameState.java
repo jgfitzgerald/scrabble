@@ -17,18 +17,16 @@ import java.util.UUID;
 @Setter
 public class GameState {
     private String id;
-
     private ArrayList<PlayerInfo> players;
     private HashMap<String, PlayerInfo> playerMap;
-    private int numPlayers;
+    private int votedToEnd;
     private GameStatus status;
     private ArrayList<Character> letters;
     private ArrayList<Turn> turnLog;
     private Board board;
+    public static Dictionary dictionary;
 
-    private static Dictionary dictionary;
-
-    private static final int RACK_SIZE = 50;
+    private static final int RACK_SIZE = 7;
 
     public void addPlayer(PlayerInfo p) {
         players.add(p);
@@ -47,7 +45,6 @@ public class GameState {
         GameState gs = new GameState();
         gs.setId(UUID.randomUUID().toString());
         gs.setPlayers(players);
-        gs.setNumPlayers(players.size());
         gs.setStatus(GameStatus.IN_PROGRESS);
         gs.setBoard(new Board());
         gs.initializeLetters();
@@ -108,7 +105,12 @@ public class GameState {
                 }
             }
         }
-        return false;
+        for (PlayerInfo p : players) {
+            if (!p.getVote()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

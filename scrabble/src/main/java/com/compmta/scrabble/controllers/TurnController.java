@@ -4,6 +4,7 @@ package com.compmta.scrabble.controllers;
 
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.DTO.WordInfo;
 import com.compmta.scrabble.model.Board;
 import com.compmta.scrabble.model.PlayerInfo;
 import com.compmta.scrabble.model.Turn;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static com.compmta.scrabble.model.GameStatus.FINISHED;
 
 @Getter
 @Setter
@@ -36,7 +39,7 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): fixing detect word, challenging, ending the game
+    //TODO priority list (in order of highest to lowest): challenging
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
@@ -46,8 +49,6 @@ public class TurnController {
             challengers.remove(challengers.indexOf(turnInfo.id()));
             return null;
         }
-
-        System.out.println(turnInfo);
         if (gsController.getGameState().getPlayerMap().get(turnInfo.id()) == null) {
             throw new IllegalArgumentException("This player is not in the game.");
         }
@@ -62,27 +63,16 @@ public class TurnController {
             throw new IllegalArgumentException("Invalid move request. Please try again.");
         }
 
-        char[] word = turnInfo.word();
-        int row = turnInfo.row();
-        int col = turnInfo.column();
-        boolean isHorizontal = turnInfo.isHorizontal();
+        char[] word = turnInfo.word().clone();
 
-        if (Collections.frequency(currPlayer.getRack(), ' ') != turnInfo.blanks().size()) {
-            throw new IllegalArgumentException("Invalid argument. Too many or two few blank letters were specified.");
-        }
-
-        if (!turnInfo.blanks().isEmpty()) {
-            int i = 0;
-            for (char c : word) {
-                if (turnInfo.blanks().get(c) != null && row == turnInfo.blanks().get(c)[0] && col == turnInfo.blanks().get(c)[1]) {
-                    word[i] = Board.DEFAULT;
-                }
-                i++;
-                if (!isHorizontal) row++; else col++;
+        if (!turnInfo.blankIndexes().isEmpty()) {
+            if (Collections.frequency(currPlayer.getRack(), ' ') < turnInfo.blankIndexes().size()) {
+                throw new IllegalArgumentException("Invalid argument. Too many blank letters were specified.");
+            }
+            for (Integer i : turnInfo.blankIndexes()) {
+                word[i] = Board.DEFAULT;
             }
         }
-
-        System.out.println(new String(word));
 
         for (char c : word) {
             if (c != Board.DEFAULT && !currPlayer.getRack().contains(c)) {
@@ -90,27 +80,38 @@ public class TurnController {
             }
         }
 
+        for (WordInfo w : board.detectWords(turnInfo)) {
+            System.out.println(w);
+        }
+
+        for (WordInfo w : board.detectWords(turnInfo)) {
+            if (!gsController.getGameState().dictionary.verifyWord(w.word())) {
+                throw new IllegalArgumentException("Following word is not contained in the dictionary: " + w.word());
+            }
+        }
+
         System.out.println("Removing tiles from rack");
-        System.out.println(new String(word));
         for (char c : word) {
             if (c != Board.DEFAULT) {
                 currPlayer.getRack().remove(currPlayer.getRack().indexOf(c));
             }
+        }
+        for (Integer i : turnInfo.blankIndexes()) {
+            if (turnInfo.isHorizontal()) {
+                board.setBlankLetter(turnInfo.row(),turnInfo.column() + i, turnInfo.word()[i]);
+            } else {
+                board.setBlankLetter(turnInfo.row() + i,turnInfo.column(), turnInfo.word()[i]);
+            }
+            currPlayer.getRack().remove(currPlayer.getRack().indexOf(' '));
         }
 
         System.out.println("Making new Turn");
         Turn newMove = new Turn(turnInfo);
         gsController.getGameState().getTurnLog().add(newMove);
 
-        for (char c : turnInfo.blanks().keySet()) {
-            board.setBlankLetter(turnInfo.blanks().get(c)[0], turnInfo.blanks().get(c)[1], c);
-            currPlayer.getRack().remove(currPlayer.getRack().indexOf(' '));
-        }
-
-        //TODO fix scoring (again)
-        //int score = board.scoreMove(turnInfo);
-        newMove.setScore(0);
-        currPlayer.updateScore(0);
+        int score = board.scoreMove(turnInfo);
+        newMove.setScore(score);
+        currPlayer.updateScore(score);
 
         if (currPlayer.getRack().isEmpty()) {
             currPlayer.updateScore(50);
@@ -178,7 +179,7 @@ public class TurnController {
         }
 
         if (gsController.getGameState().checkEndConditions()) {
-            gsController.endGame();
+            this.endGame();
         }
     }
 
@@ -217,5 +218,22 @@ public class TurnController {
 
         gsController.getGameState().getTurnLog().add(null);
         this.endTurn();
+    }
+
+    private void endGame() {
+        gsController.getGameState().setStatus(FINISHED);
+        PlayerInfo currWinner = null;
+        int maxScore = 0;
+        for (PlayerInfo p : getGsController().getPlayerList()) {
+            if (p.getTotalScore() > maxScore) {
+                currWinner = p;
+                maxScore = currWinner.getTotalScore();
+            }
+            if (maxScore == 0) {
+                currPlayer = null;
+            } else {
+                currPlayer = p;
+            }
+        }
     }
 }

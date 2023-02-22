@@ -13,9 +13,12 @@ public class PlayerInfo {
     private ArrayList<Character> rack;
     private int totalScore;
 
+    private boolean vote;
+
     public PlayerInfo(String id) {
         this.id = id;
         this.rack = new ArrayList<Character>();
+        this.vote = false;
     } //Constructor
 
     /**
@@ -26,4 +29,8 @@ public class PlayerInfo {
         totalScore += score;
     }
 
+    // idk why i had to make this lombok getter not working
+    public boolean getVote() {
+        return vote;
+    }
 }

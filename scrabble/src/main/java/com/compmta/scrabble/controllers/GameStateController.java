@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.compmta.scrabble.model.GameStatus.FINISHED;
+
 @Getter
 @Component
 public class GameStateController {
@@ -70,7 +72,12 @@ public class GameStateController {
         }
     } //setUpGame()
 
-    public void endGame() {
-        // TODO implement this
+    void voteToEnd(String id) {
+        for (PlayerInfo p : gameState.getPlayers()) {
+            if (p.getId().equals(id)) {
+                p.setVote(true);
+            }
+        }
     }
+
 }
