@@ -1,7 +1,5 @@
 package com.compmta.scrabble.model;
 
-import com.compmta.scrabble.controllers.DTO.GameStateInfo;
-import com.compmta.scrabble.controllers.GameStateController;
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +7,10 @@ import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.UUID;
 
 @NoArgsConstructor
 @Getter
@@ -18,14 +19,12 @@ public class GameState {
     private String id;
     private ArrayList<PlayerInfo> players;
     private HashMap<String, PlayerInfo> playerMap;
-    private int numPlayers;
+    private int votedToEnd;
     private GameStatus status;
     private ArrayList<Character> letters;
-    private HashSet<String> playedWords;
     private ArrayList<Turn> turnLog;
     private Board board;
-
-    private static Dictionary dictionary;
+    public static Dictionary dictionary;
 
     private static final int RACK_SIZE = 7;
 
@@ -46,11 +45,9 @@ public class GameState {
         GameState gs = new GameState();
         gs.setId(UUID.randomUUID().toString());
         gs.setPlayers(players);
-        gs.setNumPlayers(players.size());
         gs.setStatus(GameStatus.IN_PROGRESS);
         gs.setBoard(new Board());
         gs.initializeLetters();
-        gs.setPlayedWords(new HashSet<String>());
         gs.setTurnLog(new ArrayList<Turn>());
         File dict = new File("docs/Collins Scrabble Words (2019).txt");
         try {
@@ -108,7 +105,12 @@ public class GameState {
                 }
             }
         }
-        return false;
+        for (PlayerInfo p : players) {
+            if (!p.getVote()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

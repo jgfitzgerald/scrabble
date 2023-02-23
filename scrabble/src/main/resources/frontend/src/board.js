@@ -1,8 +1,14 @@
 import React from 'react';
-import { Droppable } from 'react-beautiful-dnd';
+import { useState, useRef, useEffect } from 'react';
+import Tile from './tile.js';
+import { DropTarget } from 'react-drag-drop-container';
 
-const Board = (props) => {
+const Board = ({data, thisTurn, tileClick}) => {
 
+    console.log('BOARD RENDERED');
+    // console.log(thisTurn);
+
+    // Board stylings
     const boardStyle = {
         display: 'grid',
         gridTemplateColumns: 'repeat(15, 1fr)',
@@ -14,292 +20,98 @@ const Board = (props) => {
         backgroundColor: '#bfbc95',
         padding: '2px',
     };
-    const normal= {
+    const square = {
+        width: '100%',
+        height: '100%',
         borderRadius: '5px',
-        backgroundColor: 'grey',
     };
-    const center= {
-        borderRadius: '5px',
-        backgroundColor: '#831399',
-    };
-    const doubleWord = {
-        borderRadius: '5px',
-        backgroundColor: '#c526ab',
-    };
-    const doubleLetter = {
-        borderRadius: '5px',
-        backgroundColor: '#4bcae0',
-    };
-    const tripleWord = {
-        borderRadius: '5px',
-        backgroundColor: '#e49631',
-    };
-    const tripleLetter = {
-        borderRadius: '5px',
-        backgroundColor: '#2718af',
-    };
-
-    function onDrop(data) {
-        console.log(`dropped: ${data}`);
+    const styles = {
+        'N' : { backgroundColor: 'grey' },
+        'C' : { backgroundColor: '#831399' },
+        'DW': { backgroundColor: '#c526ab' },
+        'DL': { backgroundColor: '#4bcae0' },
+        'TW': { backgroundColor: '#e49631' },
+        'TL': { backgroundColor: '#2718af' },
     }
 
-    return <div style={boardStyle}>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
-        <div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div><div style={normal}></div>
+    // Default scrabble board
+    const squares = [
+        ['TW', 'N' , 'N' , 'DL', 'N' , 'N',  'N',  'TW', 'N',  'N',  'N',  'DL', 'N' , 'N',  'TW'],
+        ['N' , 'DW', 'N' , 'N' , 'N' , 'TL', 'N',  'N',  'N',  'TL', 'N',  'N',  'N' , 'DW', 'N'],
+        ['N' , 'N' , 'DW', 'N' , 'N' , 'N',  'DL', 'N',  'DL', 'N',  'N',  'N',  'DW', 'N',  'N'],
+        ['DL', 'N' , 'N' , 'DW', 'N' , 'N',  'N',  'DL', 'N',  'N',  'N',  'DW', 'N',  'N',  'DL'],
+        ['N' , 'N' , 'N' , 'N' , 'DW', 'N',  'N',  'N',  'N',  'N',  'DW', 'N',  'N',  'N',  'N'],
+        ['N' , 'TL', 'N' , 'N' , 'N' , 'TL', 'N',  'N',  'N',  'TL', 'N' , 'N',  'N',  'TL', 'N'],
+        ['N' , 'N' , 'DL', 'N' , 'N' , 'N',  'DL', 'N',  'DL', 'N',  'N' , 'N',  'DL', 'N',  'N'],
+        ['TW', 'N' , 'N' , 'DL', 'N' , 'N',  'N',  'C',  'N',  'N',  'N' , 'DL', 'N',  'N',  'TW'],
+        ['N' , 'N' , 'DL', 'N' , 'N' , 'N',  'DL', 'N',  'DL', 'N',  'N' , 'N',  'DL', 'N',  'N'],
+        ['N' , 'TL', 'N' , 'N' , 'N' , 'TL', 'N',  'N',  'N',  'TL', 'N' , 'N',  'N',  'TL', 'N'],
+        ['N' , 'N' , 'N' , 'N' , 'DW', 'N',  'N',  'N',  'N',  'N',  'DW', 'N',  'N',  'N',  'N'],
+        ['DL', 'N' , 'N' , 'DW', 'N' , 'N',  'N',  'DL', 'N',  'N',  'N',  'DW', 'N',  'N',  'DL'],
+        ['N' , 'N' , 'DW', 'N' , 'N' , 'N',  'DL', 'N',  'DL', 'N',  'N',  'N',  'DW', 'N',  'N'],
+        ['N' , 'DW', 'N' , 'N' , 'N' , 'TL', 'N',  'N',  'N',  'TL', 'N',  'N',  'N',  'DW', 'N'],
+        ['TW', 'N' , 'N' , 'DL', 'N' , 'N',  'N',  'TW', 'N',  'N',  'N',  'DL', 'N',  'N',  'TW'],
+    ];
 
-        {/* <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable> */}
+    function dropped(e) {
+        console.log(e);
+        console.log('Dropped!!!');
+    }
 
-        {/* <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
+    return (
+        <div style={boardStyle}>
+            {
+                data ? 
+                // show the current game board
+                data.board.map((row, i) => {
+                    return (
+                        row.map((val, j) => {
+                            // console.log(`val.letter !== data.default ? ${val.letter !== data.default}`)
+                            return (
+                                val.letter !== "\u0000" ?
+                                <Tile
+                                    char={val.letter}
+                                    drag={false}
+                                    currTurn={Object.keys(thisTurn).includes(`${i}/${j}`)}
+                                    onClick={(e) => tileClick(e, `${i}/${j}`)}
+                                /> :
+                                <DropTarget
+                                    targetKey="square"
+                                    onHit={dropped}
+                                    dropData={{name: `${i}/${j}`}}
+                                >
+                                    <div style={{...square, ...styles[squares[i][j]]}}>
+                                        { squares[i][j] !== 'N' ? <p>{squares[i][j]}</p> : <div /> }
+                                    </div>
+                                </DropTarget>
+                            );
+                        })
+                    );
+                })
+                :
+                // show the standard board
+                squares.map((row, i) => {
+                    return (
+                        row.map((val, j) => {
+                            // console.log(`${i} ${j}: ${val}`)
+                            return (
+                                <DropTarget
+                                    targetKey="square"
+                                    onHit={dropped}
+                                    dropData={{name: `${i}/${j}`}}
+                                >
+                                    <div style={{...square, ...styles[val]}}>
+                                        { val !== 'N' ? <p>{val}</p> : <div /> }
+                                    </div>
+                                </DropTarget>
+                            );
+                        })
+                    );
+                })
+            }
+        </div>
+    );
 
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={center}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={doubleLetter}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={normal}></div></Droppable>
-        <Droppable droppableId="board-square" type="tile" isDropDisabled={false}><div style={tripleWord}></div></Droppable> */}
-    </div>
 }
 
 export default Board;

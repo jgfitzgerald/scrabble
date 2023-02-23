@@ -34,4 +34,8 @@ public class Dictionary {
             ex.printStackTrace();
         }
     }
+
+    public static boolean verifyWord(String word) {
+        return dictionary.contains(word.toUpperCase());
+    }
 }

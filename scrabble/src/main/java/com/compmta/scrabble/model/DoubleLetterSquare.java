@@ -4,6 +4,7 @@ import com.compmta.scrabble.util.Letter;
 
 public class DoubleLetterSquare extends Square {
 
+    private static final char DEFAULT = '\u0000';
     private char letter;
 
     /**
@@ -15,7 +16,10 @@ public class DoubleLetterSquare extends Square {
      */
     @Override
     public int effect(String word, int score, int index) {
-        if (index == word.length()) return score + (Letter.map.get(word.charAt(index)).getBaseScore()) * 2;
-        else return 0;
+        if (index != word.length() && this.getLetter() == DEFAULT) {
+            return Letter.map.get(word.charAt(index)).getBaseScore() * 2;
+        } else if (index != word.length()) {
+            return Letter.map.get(word.charAt(index)).getBaseScore();
+        } else return 0;
     }
 }

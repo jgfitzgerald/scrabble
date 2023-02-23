@@ -8,6 +8,8 @@ public class TripleWordSquare extends Square {
 
     private char letter;
 
+    private static final char DEFAULT = '\u0000';
+
     /**
      *
      * @param word the word the player has played
@@ -17,10 +19,12 @@ public class TripleWordSquare extends Square {
      */
     @Override
     public int effect(String word, int score, int index) {
-        if (index == word.length()) {
-            return score * 3;
+        if (index == word.length() && this.getLetter() == DEFAULT) {
+            return score * 2;
+        } else if (index == word.length()) {
+            return 0;
         } else {
-            return score + Letter.map.get(word.charAt(index)).getBaseScore();
+            return Letter.map.get(word.charAt(index)).getBaseScore();
         }
     }
 

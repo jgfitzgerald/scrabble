@@ -1,9 +1,11 @@
 import React from 'react';
 import background from './assets/wood.jpg';
-import { Draggable } from 'react-beautiful-dnd';
+import { DragDropContainer } from 'react-drag-drop-container';
 
 const Tile = (props) => {
     const char = props.char;
+    const draggable = props.drag;
+    const currTurn = props.currTurn;
 
     const values = {
         ' ': 0,
@@ -37,10 +39,8 @@ const Tile = (props) => {
         '0': ''
     };
 
-    const tileStyle = {
-        cursor: 'pointer',
+    const tyleStyle = {
         position: 'relative',
-        width: '50px',
         aspectRatio: 1,
         backgroundColor: 'white',
         backgroundImage: `url(${background})`,
@@ -50,18 +50,54 @@ const Tile = (props) => {
         placeItems: 'center',
         color: 'black',
     };
+    const placedStyle = {
+        width: '100%',
+        fontSize: '75%',
+        cursor: 'pointer'
+    };
+    const dragStyle = {
+        cursor: 'pointer',
+        width: '50px',
+    };
     const valueStyle = {
         position: 'absolute',
         bottom: 1,
         right: 3,
     };
 
-    // return <Draggable key={char} draggableId={char} type='tile' index={props.index}>
-        return <div style={tileStyle}>
+    if (draggable) {
+        return <DragDropContainer
+            targetKey="square"
+            dragData={{letter: char}}
+            onDrop={props.onDrop}
+            render= {() => {
+                return <div style={{...tyleStyle, ...dragStyle}}>
+                    <h1>{char.toUpperCase()}</h1>
+                    <p style={valueStyle}>{values[char]}</p>
+                </div>
+            }}
+        />
+    } else if (currTurn) {
+        return <DragDropContainer
+            targetKey="square"
+            dragData={{letter: char}}
+            onDrop={props.onDrop}
+            render= {() => {
+                return <div
+                    style={{...tyleStyle, ...placedStyle}}
+                    onClick={props.onClick}
+                >
+                    <h1>{char.toUpperCase()}</h1>
+                    <p style={valueStyle}>{values[char]}</p>
+                </div>
+            }}
+        />
+    } else {
+        return <div style={{...tyleStyle, ...placedStyle, ...{cursor: 'default'}}}>
             <h1>{char.toUpperCase()}</h1>
             <p style={valueStyle}>{values[char]}</p>
         </div>
-    // </Draggable>
+    }
 }
 
 export default Tile;
