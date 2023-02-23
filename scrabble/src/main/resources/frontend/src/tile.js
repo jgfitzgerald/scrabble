@@ -93,7 +93,7 @@ const Tile = (props) => {
             }}
         />
     } else {
-        return <div style={{...tyleStyle, ...placedStyle}}>
+        return <div style={{...tyleStyle, ...placedStyle, ...{cursor: 'default'}}}>
             <h1>{char.toUpperCase()}</h1>
             <p style={valueStyle}>{values[char]}</p>
         </div>

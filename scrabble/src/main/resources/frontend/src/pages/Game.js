@@ -44,18 +44,6 @@ const Game = (props) => {
   const name = localStorage.getItem('name');
   const [placedThisTurn, updatePlaced] = useState({});
 
-
-  const word = "face";
-
-  const [turnState, setTurnState] = useState({
-    id: name, // string
-    word: word, // char[]
-    row: 0, // int
-    column: 0, // int
-    isHorizontal: false, // bool
-    blankIndexes: [] // List<Integer>
-  });
-
   const [state, setState] = useState({
     id: '49851',
     playerMap: {
@@ -72,12 +60,13 @@ const Game = (props) => {
   const startGame = () => {
     axios.post('/start', {
     }).then((response) => {
-      // console.log('start response:::');
-      // console.log(response);
+      console.log('start response:::');
+      console.log(response);
     }).catch((error) => {
       console.log(error);
     });
   }
+
   const getState = () => {
     axios.get('/gamestate', {
     }).then((response) => {
@@ -94,17 +83,80 @@ const Game = (props) => {
       console.log(error);
     });
   }
+
   const makeMove = () => {
-    console.log(turnState);
+    let placement = checkPlacement();
+    console.log(placement);
+    if (placement === {}) return; // show some sort of message to user
+    // create turn state info
+    let word = Object.values(placedThisTurn);
+    for (let c = 0; c < word.length; c++) {
+      word[c] = word[c].charAt(0);
+    }
+    let blankIndices = Object.values(placedThisTurn).reduce(
+      (total, val, index) => {if (val === ' ') { total.push(index) }}, []
+    );
+    blankIndices = typeof blankIndices === undefined ? blankIndices : [];
+    console.log(blankIndices);
+
     axios.post('/move', {
-      turnInfo: turnState
+      id: name.toString(), // string // DONE
+      word: word, // char[]
+      row: parseInt(placement['x']), // int
+      column: parseInt(placement['y']), // int
+      isHorizontal: placement['isHorizontal'], // bool
+      blankIndexes: blankIndices // List<Integer>
     }).then((response)=> {
       console.log('MOVE RESPONSE:::');
       console.log(response);
+      if (response.status === axios.HttpStatusCode.Ok) {
+        // empty placedThisTurn
+        updatePlaced({});
+        // probably something else...
+      }
     }).catch((error) => {
       console.log(error);
     })
   }
+
+  const checkPlacement = () => {
+    // check if all in same row OR column
+    // AND that they are consecutive
+    let rows = {};
+    let cols = {};
+    for (let key in placedThisTurn) {
+      console.log(key);
+      let coords = key.split('/');
+      rows[coords[0]] = 1;
+      cols[coords[1]] = 1;
+    }
+    console.log(rows);
+    console.log(cols);
+    let rowKeys = Object.keys(rows);
+    let colKeys = Object.keys(cols);
+    console.log(rowKeys);
+    console.log(colKeys);
+
+    // if all in same row, check that col values are consecutive
+    if (rowKeys.length === 1) {
+      return {
+        x: rowKeys[0],
+        y: colKeys[0],
+        isHorizontal: true,
+      };
+    }
+    // if all in same col, check that row values are consecutive
+    else if (colKeys.length === 1) {
+      return {
+        x: rowKeys[0],
+        y: colKeys[0],
+        isHorizontal: false,
+      };
+    }
+
+    return {};
+  }
+
   const passTurn = () => {
     axios.post('/pass', {
       id: name
@@ -122,7 +174,7 @@ const Game = (props) => {
     let newPlaced = {...placedThisTurn};
     newPlaced[e.dropData.name] = e.dragData.letter;
     updatePlaced(newPlaced);
-    console.log(placedThisTurn);
+    // console.log(placedThisTurn);
     // remove tile from rack
     stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
     // place tile on board
@@ -130,7 +182,10 @@ const Game = (props) => {
     stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = e.dragData.letter;
     // save new state
     setState(stateCopy);
-    console.log('stateCopy: ', stateCopy);
+    // console.log('stateCopy: ', stateCopy);
+
+
+    // checkPlacement();
   }
 
   // this needs to have the char as well
@@ -138,22 +193,22 @@ const Game = (props) => {
     console.log(e);
     let stateCopy = {...state};
     // update tiles placed this turn
-    console.log('placedThisTurn: ', placedThisTurn);
+    // console.log('placedThisTurn: ', placedThisTurn);
     let char = placedThisTurn[coords];
     let newPlaced = {...placedThisTurn};
-    console.log('name ', coords);
+    // console.log('name ', coords);
     delete newPlaced[coords];
-    console.log(newPlaced);
+    // console.log(newPlaced);
     updatePlaced(newPlaced);
-    console.log(placedThisTurn);
+    // console.log(placedThisTurn);
     // remove tile from board
     coords = coords.split('/');
-    stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = state.board.default;
+    stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = "\u0000";
     // add tile to rack
     stateCopy.playerMap[name].rack.push(char);
     // save new state
     setState(stateCopy);
-    console.log('stateCopy: ', stateCopy);
+    // console.log('stateCopy: ', stateCopy);
   }
 
   function reorder(list, from, to) {

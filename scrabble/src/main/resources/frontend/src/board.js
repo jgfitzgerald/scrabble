@@ -6,7 +6,7 @@ import { DropTarget } from 'react-drag-drop-container';
 const Board = ({data, thisTurn, tileClick}) => {
 
     console.log('BOARD RENDERED');
-    console.log(thisTurn);
+    // console.log(thisTurn);
 
     // Board stylings
     const boardStyle = {
@@ -68,7 +68,7 @@ const Board = ({data, thisTurn, tileClick}) => {
                         row.map((val, j) => {
                             // console.log(`val.letter !== data.default ? ${val.letter !== data.default}`)
                             return (
-                                val.letter !== data.default ?
+                                val.letter !== "\u0000" ?
                                 <Tile
                                     char={val.letter}
                                     drag={false}
@@ -81,7 +81,7 @@ const Board = ({data, thisTurn, tileClick}) => {
                                     dropData={{name: `${i}/${j}`}}
                                 >
                                     <div style={{...square, ...styles[squares[i][j]]}}>
-                                        <p>{i} {j}</p>
+                                        { squares[i][j] !== 'N' ? <p>{squares[i][j]}</p> : <div /> }
                                     </div>
                                 </DropTarget>
                             );
@@ -101,7 +101,7 @@ const Board = ({data, thisTurn, tileClick}) => {
                                     dropData={{name: `${i}/${j}`}}
                                 >
                                     <div style={{...square, ...styles[val]}}>
-                                        <p>{i} {j}</p>
+                                        { val !== 'N' ? <p>{val}</p> : <div /> }
                                     </div>
                                 </DropTarget>
                             );
