@@ -85,7 +85,7 @@ const Tile = (props) => {
             render= {() => {
                 return <div
                     style={{...tyleStyle, ...placedStyle}}
-                    onClick={props.onClick} // need to pass the char back from here
+                    onClick={props.onClick}
                 >
                     <h1>{char.toUpperCase()}</h1>
                     <p style={valueStyle}>{values[char]}</p>

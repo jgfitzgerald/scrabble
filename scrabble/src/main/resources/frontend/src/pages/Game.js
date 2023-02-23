@@ -42,17 +42,18 @@ const Game = (props) => {
 
 
   const name = localStorage.getItem('name');
-  const [placedThisTurn, updatePlaced] = useState([]);
+  const [placedThisTurn, updatePlaced] = useState({});
 
 
   const word = "face";
 
   const [turnState, setTurnState] = useState({
-    id: name,
-    word: word,
-    row: 0,
-    column: 0,
-    isHorizontal: false
+    id: name, // string
+    word: word, // char[]
+    row: 0, // int
+    column: 0, // int
+    isHorizontal: false, // bool
+    blankIndexes: [] // List<Integer>
   });
 
   const [state, setState] = useState({
@@ -118,15 +119,15 @@ const Game = (props) => {
   function placeTile(e) {
     let stateCopy = {...state};
     // keep track of where tiles are being placed in a turn
-    let newPlaced = [...placedThisTurn]
-    newPlaced.push(e.dropData.name);
+    let newPlaced = {...placedThisTurn};
+    newPlaced[e.dropData.name] = e.dragData.letter;
     updatePlaced(newPlaced);
     console.log(placedThisTurn);
+    // remove tile from rack
+    stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
     // place tile on board
     let coords = e.dropData.name.split('/');
     stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = e.dragData.letter;
-    // remove tile from rack
-    stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
     // save new state
     setState(stateCopy);
     console.log('stateCopy: ', stateCopy);
@@ -138,9 +139,10 @@ const Game = (props) => {
     let stateCopy = {...state};
     // update tiles placed this turn
     console.log('placedThisTurn: ', placedThisTurn);
-    let newPlaced = [...placedThisTurn]
+    let char = placedThisTurn[coords];
+    let newPlaced = {...placedThisTurn};
     console.log('name ', coords);
-    newPlaced.slice(newPlaced.indexOf(coords), 1);
+    delete newPlaced[coords];
     console.log(newPlaced);
     updatePlaced(newPlaced);
     console.log(placedThisTurn);
@@ -148,7 +150,7 @@ const Game = (props) => {
     coords = coords.split('/');
     stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = state.board.default;
     // add tile to rack
-    stateCopy.playerMap[name].rack.push(e.dropData.letter); // THIS is what's throuwing the error, there is no drop data
+    stateCopy.playerMap[name].rack.push(char);
     // save new state
     setState(stateCopy);
     console.log('stateCopy: ', stateCopy);

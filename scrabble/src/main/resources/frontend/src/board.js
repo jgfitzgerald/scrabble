@@ -72,8 +72,8 @@ const Board = ({data, thisTurn, tileClick}) => {
                                 <Tile
                                     char={val.letter}
                                     drag={false}
-                                    currTurn={thisTurn.includes(`${i}/${j}`)}
-                                    onClick={(e) => tileClick(e, `${i}/${j}`)} //need to somehow pass the char too
+                                    currTurn={Object.keys(thisTurn).includes(`${i}/${j}`)}
+                                    onClick={(e) => tileClick(e, `${i}/${j}`)}
                                 /> :
                                 <DropTarget
                                     targetKey="square"
