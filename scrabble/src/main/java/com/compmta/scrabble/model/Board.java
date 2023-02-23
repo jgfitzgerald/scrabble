@@ -2,10 +2,14 @@ package com.compmta.scrabble.model;
 
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.controllers.DTO.WordInfo;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -13,20 +17,34 @@ public class Board {
 
     public final int BOARD_SIZE = 15;
     public final int EFFECT_TILE = 7;
-    public final int NUM_BLANK_LETTERS = 2;
-    public final char DEFAULT = '\u0000';
+    public static final int NUM_BLANK_LETTERS = 2;
+    public static final char DEFAULT = '\u0000';
 
     private Square[][] board;
-    private int[][] blankLetterCoords;
+    private Map<Character, Coordinates> blanks;
 
+    @Setter
+    @Getter
+    @AllArgsConstructor
+    static class Coordinates {
+        private int i;
+        private int j;
+
+        public boolean equals(int i, int j) {
+            return this.i == i && this.j == j;
+        }
+    }
     public Board() {
         this.board = this.initialize();
     }
 
-    //This is sort of a logistical nightmare honestly im sorry for this
+    /**
+     * Initializes the default board.
+     * @return The board array.
+     */
     private Square[][] initialize() {
         Square[][] temp = new Square[BOARD_SIZE][BOARD_SIZE];
-        blankLetterCoords = new int[NUM_BLANK_LETTERS][NUM_BLANK_LETTERS];
+        blanks = new HashMap<>();
         //Arrays.fill(blankLetterCoords, -1);
 
         // TRIPLE WORD
@@ -148,19 +166,19 @@ public class Board {
      * @param col The column of the first index of the word
      * @param isHorizontal True if the word is placed horizontally, false if vertical
      */
-    private void placeWord(String word, int row, int col, boolean isHorizontal) {
+    private void placeWord(char[] word, int row, int col, boolean isHorizontal) {
         int index = 0;
         if (!isHorizontal) {
-            for (int i = row; i < row + word.length(); i++) {
+            for (int i = row; i < row + word.length; i++) {
                 if (this.getSquare(i,col).getLetter() == DEFAULT) {
-                    this.placeLetter(i,col,word.charAt(index));
+                    this.placeLetter(i,col,word[index]);
                 }
                 index++;
             }
         } else {
-            for (int j = col; j < col + word.length(); j++) {
+            for (int j = col; j < col + word.length; j++) {
                 if (this.getSquare(row,j).getLetter() == DEFAULT) {
-                    this.placeLetter(row,j,word.charAt(index));
+                    this.placeLetter(row,j,word[index]);
                 }
                 index++;
             }
@@ -180,39 +198,45 @@ public class Board {
         this.getSquare(i, j).setLetter(letter);
     }
 
-    public void setBlankLetter(int[] coords, char letter) {
-        int[][] blanks = this.getBlankLetterCoords();
-        if (blanks[0][0] == -1) {
-            blanks[0][0] = coords[0];
-            blanks[0][1] = coords[1];
+    public void setBlankLetter(int i, int j, char letter) {
+        if (blanks.size() < NUM_BLANK_LETTERS) {
+            blanks.put(letter, new Coordinates(i,j));
         } else {
-            blanks[1][0] = coords[0];
-            blanks[1][1] = coords[1];
+            throw new IllegalStateException("Blank letters have already been used.");
         }
     } //setBlankLetter(int[] coords, char letter)
 
+    /**
+     * Applies the turn's effects.
+     * @param turn The turn
+     */
     public void applyTurn(Turn turn) {
         this.placeWord(turn.getWord(), turn.getRow(), turn.getColumn(), turn.isHorizontal());
     }
 
+    /**
+     * Validates the first scrabble move (one coordinate must be [7,7])
+     * @param turnInfo The initial move
+     * @return True if the move is valid, false if illegal
+     */
     public boolean validateInitialMove(TurnInfo turnInfo) {
 
-        String word = turnInfo.word();
+        char[] word = turnInfo.word();
         int row = turnInfo.row();
         int col = turnInfo.column();
         boolean isHorizontal = turnInfo.isHorizontal();
 
-        if (word.length() < 2) {
+        if (word.length < 2 || Arrays.asList(word).contains(DEFAULT)) {
             return false;
         }
         if (!isHorizontal) {
-            for (int i = row; i < row + word.length(); i++) {
+            for (int i = row; i < row + word.length; i++) {
                 if (i == EFFECT_TILE && col == EFFECT_TILE) {
                     return true;
                 }
             }
         } else {
-            for (int j = col; j < col + word.length(); j++) {
+            for (int j = col; j < col + word.length; j++) {
                 if (j == EFFECT_TILE && row == EFFECT_TILE) {
                     return true;
                 }
@@ -221,8 +245,13 @@ public class Board {
         return false;
     }
 
+    /**
+     * Validates a move.
+     * @param turnInfo The requested move.
+     * @return True if the word is legal, false otherwise.
+     */
     public boolean validateMove(TurnInfo turnInfo) {
-        String word = turnInfo.word();
+        char[] word = turnInfo.word();
         int row = turnInfo.row();
         int col = turnInfo.column();
         boolean isHorizontal = turnInfo.isHorizontal();
@@ -230,21 +259,21 @@ public class Board {
         int index = 0;
 
         if (!isHorizontal) {
-            if (row + word.length() > BOARD_SIZE) {
+            if (row + word.length > BOARD_SIZE) {
                 return false;
             }
-            for (int i = row; i < row + word.length(); i++) {
-                if (this.getSquare(i, col).getLetter() != DEFAULT && this.getSquare(i, col).getLetter() != word.charAt(index)) {
+            for (int i = row; i < row + word.length; i++) {
+                if (this.getSquare(i, col).getLetter() != DEFAULT && word[index] != DEFAULT) {
                     return false;
                 }
                 index++;
             }
         } else {
-            if (col + word.length() > BOARD_SIZE) {
+            if (col + word.length > BOARD_SIZE) {
                 return false;
             }
-            for (int j = col; j < col + word.length(); j++) {
-                if (this.getSquare(row, j).getLetter() != DEFAULT && this.getSquare(row, j).getLetter() != word.charAt(index)) {
+            for (int j = col; j < col + word.length; j++) {
+                if (this.getSquare(row, j).getLetter() != DEFAULT && word[index] != DEFAULT) {
                     return false;
                 }
                 index++;
@@ -260,31 +289,31 @@ public class Board {
      */
     private boolean hasSurroundingTiles(TurnInfo turnInfo) {
 
-        String word = turnInfo.word();
+        char[] word = turnInfo.word();
         int row = turnInfo.row();
         int col = turnInfo.column();
         boolean isHorizontal = turnInfo.isHorizontal();
 
         if (!isHorizontal) {
-            for (int i = row; i < row + word.length(); i++) {
+            for (int i = row; i < row + word.length; i++) {
                 char c = this.getSquare(i,col).getLetter();
 
                 if (c != DEFAULT) {
                     return true;
                 }
-                if (i == row && i > 1) { // check above
+                if (i == row) { // check above
                     if (i-1 >= 0 && this.getSquare(i-1,col).getLetter() != DEFAULT) return true;
                 }
-                if (i == word.length() - 1) { // check below
-                    if (i+1 > BOARD_SIZE && this.getSquare(i+1,col).getLetter() != DEFAULT) return true;
+                if (i == row + word.length - 1) { // check below
+                    if (i+1 < BOARD_SIZE && this.getSquare(i+1,col).getLetter() != DEFAULT) return true;
                 }
 
                 // check left and right
                 if (col-1 >= 0 && this.getSquare(i,col-1).getLetter() != DEFAULT) return true;
-                if (col+1 > BOARD_SIZE && this.getSquare(i,col+1).getLetter() != DEFAULT) return true;
+                if (col+1 < BOARD_SIZE && this.getSquare(i,col+1).getLetter() != DEFAULT) return true;
             }
         } else {
-            for (int j = col; j < col + word.length(); j++) {
+            for (int j = col; j < col + word.length; j++) {
                 char c = this.getSquare(row,j).getLetter();
 
                 if (c != DEFAULT) {
@@ -294,41 +323,23 @@ public class Board {
                 if (j == col) { // check left
                     if (j-1 >= 0 && this.getSquare(row,j-1).getLetter() != DEFAULT) return true;
                 }
-                if (j == word.length() - 1) { // check right
-                    if (j+1 >= BOARD_SIZE && this.getSquare(row,j+1).getLetter() != DEFAULT) return true;
+                if (j == col + word.length - 1) { // check right
+                    if (j+1 < BOARD_SIZE && this.getSquare(row,j+1).getLetter() != DEFAULT) return true;
                 }
                 // check above and below
                 if (row-1 >= 0 && this.getSquare(row-1,j).getLetter() != DEFAULT) return true;
-                if (row+1 >= 0 && this.getSquare(row+1,j).getLetter() != DEFAULT) return true;
+                if (row+1 < BOARD_SIZE && this.getSquare(row+1,j).getLetter() != DEFAULT) return true;
             }
         }
+        System.out.println("has surrounding tiles");
         return false;
     }
 
-    public ArrayList<Character> getLettersOnPath(TurnInfo turnInfo) {
-
-        String word = turnInfo.word();
-        int row = turnInfo.row();
-        int col = turnInfo.column();
-        boolean isHorizontal = turnInfo.isHorizontal();
-
-        ArrayList<Character> path = new ArrayList<Character>();
-
-        if (!isHorizontal) {
-            for (int i = row; i < row + word.length(); i++) {
-                if (this.getSquare(i,col).getLetter() != DEFAULT) {
-                    path.add(this.getSquare(i,col).getLetter());
-                }
-            }
-        } else {
-            for (int j = col; j < col + word.length(); j++) {
-                if (this.getSquare(row,j).getLetter() != DEFAULT) {
-                    path.add(this.getSquare(row,j).getLetter());
-                }
-            }
-        }
-        return path;
-    }
+    /**
+     * Scores an entire move.
+     * @param move The requested move.
+     * @return The total score of all words formed by the move.
+     */
     public int scoreMove(TurnInfo move) {
 
         int score = 0;
@@ -355,8 +366,9 @@ public class Board {
         int index = 0;
         if (!isHorizontal) {
             for (int i = row; i < row + word.length(); i++) {
-                if (!(blankLetterCoords[0][0] == row && blankLetterCoords[0][1] == col ||
-                        blankLetterCoords[1][0] == row && blankLetterCoords[1][1] == col)) {
+                if (!blanks.containsKey(word.charAt(index))) {
+                    score += this.getSquare(i,col).effect(word,score,index);
+                } else if (!blanks.get(word.charAt(index)).equals(i,col)) {
                     score += this.getSquare(i,col).effect(word,score,index);
                 }
                 index++;
@@ -366,9 +378,10 @@ public class Board {
             }
         } else {
             for (int j = col; j < col + word.length(); j++) {
-                if (!(blankLetterCoords[0][0] == row && blankLetterCoords[0][1] == col ||
-                        blankLetterCoords[1][0] == row && blankLetterCoords[1][1] == col)) {
+                if (blanks.get(word.charAt(index)) == null) {
                     score += (this.getSquare(row,j).effect(word,score,index));
+                } else if (!blanks.get(word.charAt(index)).equals(row,j)) {
+                    score += this.getSquare(row,j).effect(word,score,index);
                 }
                 index++;
             }
@@ -382,90 +395,100 @@ public class Board {
     /**
      * Detects words created by the placement of a new move.
      * @param turnInfo The word to be placed.
-     * @return A list of turn information specifying the words to be scored.
+     * @return A list of word information specifying the words to be scored.
      */
     public ArrayList<WordInfo> detectWords(TurnInfo turnInfo) {
-
-        String word = turnInfo.word();
+        ArrayList<WordInfo> words = new ArrayList<>();
         int row = turnInfo.row();
         int col = turnInfo.column();
+        char[] word = turnInfo.word().clone();
         boolean isHorizontal = turnInfo.isHorizontal();
 
-        ArrayList<WordInfo> words = new ArrayList<>();
-
-        if (!isHorizontal) {
-            // check below
-            row = turnInfo.row() + turnInfo.word().length() - 1;
-            while (row+1 < BOARD_SIZE && this.getSquare(row+1,col).getLetter() != DEFAULT) {
-                word = word + this.getSquare(row+1,col).getLetter();
+        int index = 0;
+        for (char c : word) {
+            if (c == DEFAULT) {
+                word[index] = this.getSquare(row,col).getLetter();
+            }
+            if (isHorizontal) {
+                col++;
+            } else {
                 row++;
             }
-            // check above
+            index++;
+        }
+
+        row = turnInfo.row();
+        col = turnInfo.column();
+        index = 0;
+        String totalWord = new String(word);
+        if (!isHorizontal) {
+            // check above & below
+            while (row+1 < BOARD_SIZE && this.getSquare(row+1,col).getLetter() != DEFAULT) {
+                totalWord = totalWord +  this.getSquare(row+1,col).getLetter();
+                row++;
+            }
             row = turnInfo.row();
             while (row-1 > 0 && this.getSquare(row-1,col).getLetter() != DEFAULT) {
-                word = this.getSquare(row-1,col).getLetter() + word;
+                totalWord = this.getSquare(row-1,col).getLetter() + totalWord;
                 row--;
             }
-            WordInfo totalWord = new WordInfo(word,row,col,false);
-            words.add(totalWord);
+            if (totalWord.length() > 1) {
+                words.add(new WordInfo(totalWord, row, col, false));
+            }
+            row = turnInfo.row();
 
             // check left to right
-            String extras = "";
-            int index = 0;
-            for (int i = totalWord.row(); i < totalWord.row() + totalWord.word().length(); i++) {
-                if (this.getSquare(i,col).getLetter() == DEFAULT) {
-                    extras = String.valueOf(totalWord.word().charAt(index));
-                    col = totalWord.col();
-                    while (col-1 > 0 && this.getSquare(i,col-1).getLetter() != DEFAULT) {
-                        extras = this.getSquare(i,col-1).getLetter() + extras;
-                        col--;
-                    }
-                    col = totalWord.col() + totalWord.word().length() - 1;
-                    while (col+1 < BOARD_SIZE && this.getSquare(i,col+1).getLetter() != DEFAULT) {
-                        extras = extras + this.getSquare(i,col-1).getLetter();
+            String extraWord = "";
+            for (int i = row; i < row + turnInfo.word().length; i++) {
+                if (turnInfo.word()[index] != DEFAULT) {
+                    extraWord = String.valueOf(turnInfo.word()[index]);
+                    while (col + 1 < BOARD_SIZE && this.getSquare(i, col + 1).getLetter() != DEFAULT) {
+                        extraWord = extraWord + this.getSquare(i, col + 1).getLetter();
                         col++;
                     }
-                    if (extras.length() > 1) {
-                        words.add(new WordInfo(extras, i,col,true));
+                    col = turnInfo.column();
+                    while (col - 1 < BOARD_SIZE && this.getSquare(i, col - 1).getLetter() != DEFAULT) {
+                        extraWord = this.getSquare(i, col - 1).getLetter() + extraWord;
+                        col--;
+                    }
+                    if (extraWord.length() > 1) {
+                        words.add(new WordInfo(extraWord, i, col, true));
                     }
                 }
                 index++;
             }
         } else {
-            // check right
-            col = turnInfo.column() + turnInfo.word().length() - 1;
+            // check above & below
             while (col+1 < BOARD_SIZE && this.getSquare(row,col+1).getLetter() != DEFAULT) {
-                word = word + this.getSquare(row,col+1).getLetter();
+                totalWord = totalWord +  this.getSquare(row,col+1).getLetter();
                 col++;
             }
-            // check left
             col = turnInfo.column();
             while (col-1 > 0 && this.getSquare(row,col-1).getLetter() != DEFAULT) {
-                word = this.getSquare(row,col).getLetter() + word;
+                totalWord = this.getSquare(row,col-1).getLetter() + totalWord;
                 col--;
             }
-            WordInfo totalWord = new WordInfo(word,row,col,true);
-            words.add(totalWord);
+            if (totalWord.length() > 1) {
+                words.add(new WordInfo(totalWord, row, col, true));
+            }
+            col = turnInfo.column();
 
-            // check above to below
-            String extras = "";
-            int index = 0;
-            for (int j = totalWord.col(); j < totalWord.col() + totalWord.word().length(); j++) {
-                if (this.getSquare(row,j).getLetter() == DEFAULT) {
-                    extras = String.valueOf(totalWord.word().charAt(index));
-                    row = totalWord.row();
-                    while (row-1 > 0 && this.getSquare(row-1,j).getLetter() != DEFAULT) {
-                        extras = this.getSquare(row-1,j).getLetter() + extras;
-                        System.out.println(extras);
-                        row--;
-                    }
-                    row = turnInfo.row() + totalWord.word().length() - 1;
-                    while (row+1 < BOARD_SIZE && this.getSquare(row+1,j).getLetter() != DEFAULT) {
-                        extras = extras + this.getSquare(row+1,j).getLetter();
+            // check left to right
+            String extraWord = "";
+            for (int j = col; j < col + turnInfo.word().length; j++) {
+                if (turnInfo.word()[index] != DEFAULT) {
+                    extraWord = String.valueOf(turnInfo.word()[index]);
+                    while (row + 1 < BOARD_SIZE && this.getSquare(row + 1, j).getLetter() != DEFAULT) {
+                        extraWord = extraWord + this.getSquare(row + 1, j).getLetter();
                         row++;
                     }
-                    if (extras.length() > 1) {
-                        words.add(new WordInfo(extras, row,j,false));
+                    row = turnInfo.row();
+                    while (row - 1 < BOARD_SIZE && this.getSquare(row - 1, j).getLetter() != DEFAULT) {
+                        extraWord = this.getSquare(row - 1, j).getLetter() + extraWord;
+                        row--;
+                    }
+                    if (extraWord.length() > 1) {
+                        words.add(new WordInfo(extraWord, row, j, false));
                     }
                 }
                 index++;

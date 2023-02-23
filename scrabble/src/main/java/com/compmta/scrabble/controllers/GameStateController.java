@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.compmta.scrabble.model.GameStatus.FINISHED;
+
 @Getter
 @Component
 public class GameStateController {
@@ -70,7 +72,17 @@ public class GameStateController {
         }
     } //setUpGame()
 
-    public void endGame() {
-        // TODO implement this
+    /**
+     * Sets the player's vote attribute to true.
+     * If all player's wish to end the game, then the game will end at the end of the next turn.
+     * @param id The id of the player who wishes to terminate the game.
+     */
+    void voteToEnd(String id) {
+        for (PlayerInfo p : gameState.getPlayers()) {
+            if (p.getId().equals(id)) {
+                p.setVote(true);
+            }
+        }
     }
+
 }
