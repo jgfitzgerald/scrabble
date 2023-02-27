@@ -14,14 +14,14 @@ import static com.compmta.scrabble.model.GameStatus.FINISHED;
 @Component
 public class GameStateController {
 
-    private static final int INITIAL_LETTER_AMT = 7;
-    private static final int MIN_PLAYERS = 2;
-    private static final int MAX_PLAYERS = 4;
-    private static final int NUM_PASSES = 3;
+    protected static final int INITIAL_LETTER_AMT = 7;
+    protected static final int MIN_PLAYERS = 2;
+    protected static final int MAX_PLAYERS = 4;
+    protected static final int NUM_PASSES = 3;
 
-    private GameState gameState;
+    protected GameState gameState;
     static HashMap<String, PlayerInfo> players;
-    private final ArrayList<PlayerInfo> playerList;
+    protected final ArrayList<PlayerInfo> playerList;
 
     public GameStateController() {
         this.playerList = new ArrayList<PlayerInfo>();
