@@ -14,6 +14,8 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+
 import static com.compmta.scrabble.model.GameStatus.*;
 
 @RestController
@@ -72,7 +74,7 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info(String.format("Received request from %s to place letters: " + turnInfo.word().toString(), turnInfo.id()));
+            log.info(String.format("Received request from %s to place letters: " + Arrays.toString(turnInfo.word()), turnInfo.id()));
             turnController.takeTurn(turnInfo);
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
 
@@ -126,7 +128,7 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info(String.format("Received request from %s to exchange letters: " + toExchange.letters().toString(), toExchange.id()));
+            log.info(String.format("Received request from %s to exchange letters: " + Arrays.toString(toExchange.letters()), toExchange.id()));
             turnController.exchangeLetters(toExchange.id(), toExchange.letters());
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
 
@@ -166,27 +168,4 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-
-    /**
-     * Queries TurnController to challenge the turn with the specified turnInfo
-     */
-    /*@PostMapping("/challenge")
-    public ResponseEntity<Void> challengeWord(@RequestBody ChallengeInfo challenge){
-        if(game.getGameState() == null){
-            log.info("Invalid request, game not found.");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        try{
-            log.info("Received request to challenge move " + challenge.toString());
-            turnController.challengeWord(challenge);
-            simpMessagingTemplate.convertAndSend("/game", game.getGameState());
-
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        catch(Exception e){
-            log.info("Error: " + e.toString());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }*/
-
 }

@@ -46,7 +46,7 @@ public enum Letter {
     public static final Map<Character, Letter> map = Collections.unmodifiableMap(initializeMapping());
 
     private static Map<Character, Letter> initializeMapping() {
-        Map<Character, Letter> map = new HashMap<Character, Letter>();
+        Map<Character, Letter> map = new HashMap<>();
         for (Letter l : Letter.values()) {
             map.put(l.getLetter(), l);
         }
