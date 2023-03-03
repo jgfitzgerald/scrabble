@@ -111,6 +111,7 @@ public class GameStateController {
 
     void endGame() {
         this.getGameState().setStatus(FINISHED);
+        gameState.unplayedLetterScores();
     }
 
 }
