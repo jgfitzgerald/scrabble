@@ -12,14 +12,14 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
 
-@NoArgsConstructor
+import static com.compmta.scrabble.model.GameStatus.PENDING;
+
 @Getter
 @Setter
 public class GameState {
     private String id;
     private ArrayList<PlayerInfo> players;
     private HashMap<String, PlayerInfo> playerMap;
-    private int votedToEnd;
     private GameStatus status;
     private ArrayList<Character> letters;
     private ArrayList<Turn> turnLog;
@@ -27,6 +27,12 @@ public class GameState {
     public static Dictionary dictionary;
 
     private static final int RACK_SIZE = 7;
+
+    public GameState() {
+        status = PENDING;
+        players = new ArrayList<>();
+        this.setId(UUID.randomUUID().toString());
+    }
 
     public void addPlayer(PlayerInfo p) {
         players.add(p);
@@ -41,21 +47,17 @@ public class GameState {
      * @param players List of players
      * @return Initialized game state
      */
-    public static GameState initialize(ArrayList<PlayerInfo> players) {
-        GameState gs = new GameState();
-        gs.setId(UUID.randomUUID().toString());
-        gs.setPlayers(players);
-        gs.setStatus(GameStatus.IN_PROGRESS);
-        gs.setBoard(new Board());
-        gs.initializeLetters();
-        gs.setTurnLog(new ArrayList<Turn>());
+    public void initialize() {
+        this.setStatus(GameStatus.IN_PROGRESS);
+        this.setBoard(new Board());
+        this.initializeLetters();
+        this.setTurnLog(new ArrayList<Turn>());
         File dict = new File("docs/Collins Scrabble Words (2019).txt");
         try {
             dictionary = new Dictionary(dict);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return gs;
     }
 
     /**
