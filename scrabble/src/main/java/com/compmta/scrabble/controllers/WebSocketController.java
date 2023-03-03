@@ -14,7 +14,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import static com.compmta.scrabble.model.GameStatus.FINISHED;
+import static com.compmta.scrabble.model.GameStatus.*;
 
 @RestController
 @Slf4j
@@ -35,27 +35,8 @@ public class WebSocketController {
     */
     @PostMapping("/join")
     public ResponseEntity<Void> join(@RequestBody PlayerId id) throws Exception {
-        if (game.getGameState() != null) {
-            log.info("Invalid request, game is already in progress.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
         log.info("join request for id: {}", id);
         game.joinGame(id.id());
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /**
-     * Sends a request to GameStateController to set up the game
-     */
-    @PostMapping("/start")
-    public ResponseEntity<Void> start() {
-        if (game.getGameState() != null) {
-            log.info("Invalid request, game is already in progress.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        log.info("starting...");
-        game.setUpGame();
-        simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -82,8 +63,8 @@ public class WebSocketController {
      */
     @PostMapping("/move")
     public ResponseEntity<Void> placeWord(@RequestBody TurnInfo turnInfo){
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
+        if (game.getGameState().getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot place move when game is " + game.getGameState().getStatus());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         if(game.getGameState() == null){
@@ -109,8 +90,8 @@ public class WebSocketController {
      */
     @PostMapping("/pass")
     public ResponseEntity<Void> passTurn(@RequestBody PlayerId id) {
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
+        if (game.getGameState().getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot pass turn when game is " + game.getGameState().getStatus());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         if(game.getGameState() == null){
@@ -136,8 +117,8 @@ public class WebSocketController {
      */
     @PostMapping("/exchange")
     public ResponseEntity<Void> exchangeLetters(@RequestBody LettersInfo toExchange) {
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
+        if (game.getGameState().getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot exchange tiles when game is " + game.getGameState().getStatus());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         if(game.getGameState() == null){
@@ -162,7 +143,7 @@ public class WebSocketController {
      * If all players vote to end the game, then the game ends on the next turn.
      * @param vote
      */
-    @PostMapping("/voteToEnd")
+    @PostMapping("/vote")
     public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
         System.out.println(vote.gameId());
         System.out.println(game.getGameState().getId());
@@ -175,8 +156,8 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         try{
-            log.info(String.format("Received request from %s to end game.", vote.playerId()));
-            game.voteToEnd(vote.playerId());
+            log.info(String.format("Received vote request from %s.", vote.playerId()));
+            game.vote(vote.playerId());
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
             return new ResponseEntity<>(HttpStatus.OK);
         }

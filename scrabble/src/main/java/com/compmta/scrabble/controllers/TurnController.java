@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static com.compmta.scrabble.model.GameStatus.FINISHED;
+import static com.compmta.scrabble.model.GameStatus.IN_PROGRESS;
 
 @Getter
 @Setter
@@ -41,6 +42,9 @@ public class TurnController {
 
     //TODO priority list (in order of highest to lowest): unplayed letters, challenging
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
+        if (gsController.getGameState().getStatus() != IN_PROGRESS) {
+            throw new IllegalStateException("Cannot place command as game is " + gsController.getGameState().getStatus());
+        }
         if (turnInfo == null) { // passed turn
             gsController.getGameState().getTurnLog().add(null);
             return null;
@@ -126,59 +130,22 @@ public class TurnController {
         this.endTurn();
         turnCount++;
 
-        return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getPlayerList());
+        return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getGameState().getPlayers());
     } //startTurn()
-
-    /*public boolean challengeWord(ChallengeInfo challenge) {
-
-        String challenger = challenge.challengerId();
-        String player = challenge.playerId();
-        TurnInfo turn = new TurnInfo(player, challenge.word(), challenge.row(), challenge.column(), challenge.isHorizontal());
-        if (player != currPlayer.getId()) {
-            throw new IllegalArgumentException("It is not this player's turn.");
-        }
-        ArrayList<WordInfo> words = board.detectWords(turn);
-        int i = 0;
-        while (Dictionary.verifyWord(words.get(i).word()) && i < words.size()) {
-            i++;
-        }
-        if (i < words.size()) {
-            ArrayList<Character> path = board.getLettersOnPath(turn);
-            ArrayList<Character> removed = board.removeWord(turn.word(), turn.row(), turn.column(), turn.isHorizontal(), path);
-
-            // return to rack
-            int returned = currPlayer.getRack().size() - removed.size();
-            for (int j = returned; j < currPlayer.getRack().size(); j++) {
-                gsController.getGameState().getLetters().add(currPlayer.getRack().remove(j));
-            }
-            for (char c : removed) {
-                currPlayer.getRack().add(c);
-            }
-
-            currPlayer.updateScore(-1 * board.scoreMove(turn));
-            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size()-1);
-            gsController.getGameState().getTurnLog().add(null);
-            return true;
-
-        } else {
-            challengers.add(challenger);
-            return false;
-        }
-    }*/
 
     /**
      * Ends the turn of the current player.
      */
-    public void endTurn() {
-        if (gsController.getPlayerList().indexOf(currPlayer) == gsController.getPlayerList().size()-1) {
-            this.setCurrPlayer(gsController.getPlayerList().get(0));
+    private void endTurn() {
+        if (gsController.getGameState().getPlayers().indexOf(currPlayer) == gsController.getGameState().getPlayers().size()-1) {
+            this.setCurrPlayer(gsController.getGameState().getPlayers().get(0));
         } else {
-            int next = gsController.getPlayerList().indexOf(currPlayer) + 1;
-            this.setCurrPlayer(gsController.getPlayerList().get(next));
+            int next = gsController.getGameState().getPlayers().indexOf(currPlayer) + 1;
+            this.setCurrPlayer(gsController.getGameState().getPlayers().get(next));
         }
 
         if (gsController.getGameState().checkEndConditions()) {
-            this.endGame();
+            gsController.endGame();
         }
     }
 
@@ -196,6 +163,9 @@ public class TurnController {
      * @param toExchange An array of characters to be exchanged
      */
     public void exchangeLetters(String id, char[] toExchange) {
+        if (gsController.getGameState().getStatus() != IN_PROGRESS) {
+            throw new IllegalStateException("Cannot place command as game is " + gsController.getGameState().getStatus());
+        }
         if (id.compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
@@ -220,6 +190,9 @@ public class TurnController {
      * @param name The current player
      */
     public void passTurn(String name) {
+        if (gsController.getGameState().getStatus() != IN_PROGRESS) {
+            throw new IllegalStateException("Cannot place command as game is " + gsController.getGameState().getStatus());
+        }
         if (name.compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
@@ -236,7 +209,7 @@ public class TurnController {
         gsController.getGameState().setStatus(FINISHED);
         PlayerInfo currWinner = null;
         int maxScore = 0;
-        for (PlayerInfo p : getGsController().getPlayerList()) {
+        for (PlayerInfo p : gsController.getGameState().getPlayers()) {
             if (p.getTotalScore() > maxScore) {
                 currWinner = p;
                 maxScore = currWinner.getTotalScore();
