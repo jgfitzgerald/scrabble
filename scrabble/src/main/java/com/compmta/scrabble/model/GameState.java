@@ -44,8 +44,6 @@ public class GameState {
 
     /**
      * Initializes all game elements
-     * @param players List of players
-     * @return Initialized game state
      */
     public void initialize() {
         this.setStatus(GameStatus.IN_PROGRESS);
@@ -113,6 +111,27 @@ public class GameState {
             }
         }
         return true;
+    }
+
+    /**
+     * When the game ends, each player's score is reduced by the sum of his or her unplayed letters.
+     * In addition, if a player has used all of his or her letters, the sum of the other players' unplayed letters is added to that player's score.
+     */
+    public void unplayedLetterScores() {
+        int scoreReduce = 0;
+        for (PlayerInfo p : players) {
+            if (!p.getRack().isEmpty()) {
+                for (char c : p.getRack()) {
+                    p.updateScore(-1 * Letter.map.get(c).getBaseScore());
+                    scoreReduce += Letter.map.get(c).getBaseScore();
+                }
+            }
+        }
+        for (PlayerInfo p : players) {
+            if (p.getRack().isEmpty()) {
+                p.updateScore(scoreReduce);
+            }
+        }
     }
 
 }
