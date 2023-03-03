@@ -115,7 +115,7 @@ public class WebSocketController {
      * Allows a player to exchange letters
      * @param toExchange DTO containing the player and the letters they wish to exchange
      */
-    @PostMapping("/exchange")
+    @PatchMapping("/exchange")
     public ResponseEntity<Void> exchangeLetters(@RequestBody LettersInfo toExchange) {
         if (game.getGameState().getStatus() != IN_PROGRESS) {
             log.info("Error: Cannot exchange tiles when game is " + game.getGameState().getStatus());
@@ -143,7 +143,7 @@ public class WebSocketController {
      * If all players vote to end the game, then the game ends on the next turn.
      * @param vote
      */
-    @PostMapping("/vote")
+    @PatchMapping("/vote")
     public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
         System.out.println(vote.gameId());
         System.out.println(game.getGameState().getId());
