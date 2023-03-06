@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TripleLetterSquare extends Square {
 
+    public static final String LABEL = "TL";
     private char letter;
     private static final char DEFAULT = '\u0000';
 

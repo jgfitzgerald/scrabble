@@ -3,6 +3,7 @@ package com.compmta.scrabble.model;
 import com.compmta.scrabble.util.Letter;
 
 public class DoubleLetterSquare extends Square {
+    public static final String LABEL = "DL";
 
     private static final char DEFAULT = '\u0000';
     private char letter;
