@@ -30,10 +30,12 @@ public class GameState {
     public GameState() {
         status = PENDING;
         players = new ArrayList<>();
+        playerMap = new HashMap<>();
         this.setId(UUID.randomUUID().toString());
     }
 
     public void addPlayer(PlayerInfo p) {
+        playerMap.put(p.getId(), p);
         players.add(p);
     }
 
