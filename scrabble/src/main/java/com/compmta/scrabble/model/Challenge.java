@@ -16,7 +16,6 @@ public class Challenge {
     }
 
     private boolean validate(List<WordInfo> words) {
-        System.out.println("Validating");
         for (WordInfo word : words) {
             if (!Dictionary.verifyWord(word.word())) {
                 return true;

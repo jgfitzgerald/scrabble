@@ -74,7 +74,8 @@ public class WebSocketController {
             log.info(String.format("Received request from %s to place letters: " + Arrays.toString(turnInfo.word()), turnInfo.id()));
             turnController.takeTurn(turnInfo);
             simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
-
+            turnController.challengePhase(turnInfo);
+            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
