@@ -5,7 +5,7 @@
     height: 100vh;
     display: grid;
     place-items: center;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 0.3fr;
 }
 
 .header {

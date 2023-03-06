@@ -20,6 +20,22 @@ const Game = (props) => {
           // console.log('DATA:::');
           // console.log(data);
           setState(data);
+          
+          axios.get('/currPlayer', {
+          }).then((response) => {
+            // console.log(response);
+            if (response.status === axios.HttpStatusCode.Ok) {
+              let data = response.data;
+              console.log('curr player:::');
+              console.log(data);
+              setCurrPlayer(data);
+              // console.log('PLAYERS:::');
+              // console.log(data.players);
+            }
+          }).catch((error) => {
+            console.log(error);
+          });
+
         }
       });
     }
@@ -42,6 +58,7 @@ const Game = (props) => {
 
 
   const name = localStorage.getItem('name');
+  const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
 
   const [state, setState] = useState({
@@ -211,12 +228,27 @@ const Game = (props) => {
     // console.log('stateCopy: ', stateCopy);
   }
 
-  function reorder(list, from, to) {
-    let newList = list.slice(0);
-    newList.splice(from, 1)
-    newList.splice(to, 0, list[from]);
-    return newList;
+  function shuffleRack() {
+    let rackCopy = [...state.playerMap[name].rack];
+    for (let i = 0; i < 100; i++) {
+      rackCopy.splice(
+        Math.floor(Math.random() * rackCopy.length),
+        0,
+        rackCopy.splice(Math.floor(Math.random() * rackCopy.length), 1)
+      );
+      // reorder(rackCopy, Math.floor(Math.random() * rackCopy.length));
+    }
+    let newState = {...state};
+    newState.playerMap[name].rack = rackCopy;
+    setState(newState);
   }
+
+  // function reorder(list, from, to) {
+  //   let newList = list.slice(0);
+  //   newList.splice(from, 1)
+  //   newList.splice(to, 0, list[from]);
+  //   return newList;
+  // }
 
   // const onDragEnd = result => {
   //   if (!result.destination) return;
@@ -241,7 +273,7 @@ const Game = (props) => {
         <Board data={state.board} thisTurn={placedThisTurn} tileClick={returnToRack} />
         <div className="players">
           {Object.entries(state.playerMap).map( ([key, value]) =>
-            <div className={"namePlate playing"}>
+            <div className={"namePlate" + ((Object.keys(currPlayer).length !== 0 && currPlayer.id === key) ? " playing" : "")}>
               <p>{key}</p>
               <p>({value.totalScore} points)</p>
             </div>
