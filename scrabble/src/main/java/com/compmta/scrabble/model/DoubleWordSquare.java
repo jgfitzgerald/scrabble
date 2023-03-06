@@ -4,6 +4,7 @@ import com.compmta.scrabble.util.Letter;
 
 public class DoubleWordSquare extends Square {
 
+    public static final String LABEL = "DW";
     private static final char DEFAULT = '\u0000';
     private char letter;
 

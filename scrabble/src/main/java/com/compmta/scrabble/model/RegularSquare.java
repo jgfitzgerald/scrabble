@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RegularSquare extends Square {
 
+    public static final String LABEL = "N";
     private char letter;
 
     /**
