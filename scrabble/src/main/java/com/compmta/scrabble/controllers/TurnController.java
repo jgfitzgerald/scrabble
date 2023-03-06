@@ -119,7 +119,7 @@ public class TurnController {
         }
 
         gsController.getGameState().setStatus(CHALLENGE);
-        return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getGameState().getPlayers());
+        return new GameStateInfo(gsController.getGameState().getId(), gsController.getGameState().getStatus(), board, gsController.getGameState().getPlayerMap());
     } //startTurn()
 
     /**
