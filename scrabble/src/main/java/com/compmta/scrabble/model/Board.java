@@ -124,39 +124,31 @@ public class Board {
     }
 
     /**
-     *
-     * @param word The word to be removed
-     * @param row The starting row of the word
-     * @param col The starting column of the word
-     * @param isHorizontal True if horizontal, false if vertical
-     * @param path An ArrayList containing the letters on the path not placed in the current turn
+     * @param turn the turn to cancel
      * @return A list of characters removed
      */
-    public ArrayList<Character> removeWord(String word, int row, int col, boolean isHorizontal, ArrayList<Character> path) {
-        ArrayList<Character> charsRemoved = new ArrayList<Character>();
+    public void removeWord(TurnInfo turn) {
 
-        if (!isHorizontal) {
-            for (int i = row; i < row + word.length(); i++) {
-                char c = this.getSquare(i,col).getLetter();
-                if (c != DEFAULT && !path.contains(c)) {
+        int row = turn.row();
+        int col = turn.column();
+        char[] word = turn.word();
+        int index = 0;
+
+        if (!turn.isHorizontal()) {
+            for (int i = row; i < row + turn.word().length; i++) {
+                if (this.getSquare(i,col).getLetter() == word[index]) {
                     this.getSquare(i,col).setLetter(DEFAULT);
-                    charsRemoved.add(c);
-                } else if (path.contains(c)) {
-                    path.remove(path.indexOf(c));
                 }
+                index++;
             }
         } else {
-            for (int j = col; j < col + word.length(); j++) {
-                char c = this.getSquare(row,j).getLetter();
-                if (c != DEFAULT && !path.contains(c)) {
+            for (int j = col; j < col + word.length; j++) {
+                if (this.getSquare(row,j).getLetter() == word[index]) {
                     this.getSquare(row,j).setLetter(DEFAULT);
-                    charsRemoved.add(c);
-                }  else if (path.contains(c)) {
-                    path.remove(path.indexOf(c));
                 }
+                index++;
             }
         }
-        return charsRemoved;
     }
 
     /**

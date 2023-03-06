@@ -2,7 +2,6 @@ package com.compmta.scrabble.model;
 
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.File;
@@ -106,7 +105,7 @@ public class GameState {
             }
         }
         for (PlayerInfo p : players) {
-            if (!p.getVote()) {
+            if (p.getVote()) {
                 return false;
             }
         }

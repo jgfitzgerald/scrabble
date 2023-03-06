@@ -76,7 +76,6 @@ public class GameStateController {
     /**
      * Switches the player's vote attribute.
      * Will automatically start the game if game is pending and all player's votes are true.
-     * Will end the game on the next turn if game is in progress and all player's votes are false.
      * @param id The id of the player who voted
      */
     void vote(String id) {
@@ -96,22 +95,6 @@ public class GameStateController {
                 this.setUpGame();
             }
         }
-        if (gameState.getStatus() == IN_PROGRESS) {
-            int i = 0;
-            for (PlayerInfo p : gameState.getPlayers()) {
-                if (!p.getVote()) {
-                    i++;
-                }
-            }
-            if (i == gameState.getPlayers().size()) {
-                this.endGame();
-            }
-        }
-    }
-
-    void endGame() {
-        this.getGameState().setStatus(FINISHED);
-        gameState.unplayedLetterScores();
     }
 
 }
