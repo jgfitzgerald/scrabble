@@ -36,7 +36,7 @@ public class WebSocketController {
     public ResponseEntity<GameStateInfo> join(@RequestBody PlayerId id) throws Exception {
         log.info("join request for id: {}", id);
         game.joinGame(id.id());
-        return ResponseEntity.ok(new GameStateInfo(game.getGameState().getId(), game.getGameState().getBoard(), game.getGameState().getPlayers()));
+        return ResponseEntity.ok(new GameStateInfo(game.getGameState().getId(), game.getGameState().getStatus(), game.getGameState().getBoard(), game.getGameState().getPlayerMap()));
     }
 
     /**
@@ -44,9 +44,9 @@ public class WebSocketController {
      */
     @GetMapping("/gamestate")
     @SendTo("/game/gameState")
-    public ResponseEntity<GameState> getGame() throws Exception {
+    public ResponseEntity<GameStateInfo> getGame() throws Exception {
         log.info("fetch game");
-        return ResponseEntity.ok(game.getGameState());
+        return ResponseEntity.ok(new GameStateInfo(game.getGameState().getId(), game.getGameState().getStatus(), game.getGameState().getBoard(), game.getGameState().getPlayerMap()));
     }
 
     /**
