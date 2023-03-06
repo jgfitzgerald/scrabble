@@ -33,10 +33,10 @@ public class WebSocketController {
      * Sends a request to GameStateController to add a new player to the game
     */
     @PostMapping("/join")
-    public ResponseEntity<Void> join(@RequestBody PlayerId id) throws Exception {
+    public ResponseEntity<GameStateInfo> join(@RequestBody PlayerId id) throws Exception {
         log.info("join request for id: {}", id);
         game.joinGame(id.id());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(new GameStateInfo(game.getGameState().getId(), game.getGameState().getBoard(), game.getGameState().getPlayers()));
     }
 
     /**
