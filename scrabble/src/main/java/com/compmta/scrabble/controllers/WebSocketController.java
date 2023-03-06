@@ -1,9 +1,6 @@
 package com.compmta.scrabble.controllers;
 
-import com.compmta.scrabble.controllers.DTO.LettersInfo;
-import com.compmta.scrabble.controllers.DTO.PlayerId;
-import com.compmta.scrabble.controllers.DTO.TurnInfo;
-import com.compmta.scrabble.controllers.DTO.VoteInfo;
+import com.compmta.scrabble.controllers.DTO.*;
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -147,8 +144,6 @@ public class WebSocketController {
      */
     @PatchMapping("/vote")
     public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
-        System.out.println(vote.gameId());
-        System.out.println(game.getGameState().getId());
         if (game.getGameState().getStatus() == FINISHED) {
             log.info("This game has already ended.");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -167,5 +162,32 @@ public class WebSocketController {
             log.info("Error: " + e.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PostMapping("/challenge")
+    public ResponseEntity<Void> challengeWord(@RequestBody ChallengeInfo challengerInfo) {
+        if (game.getGameState().getStatus() != CHALLENGE) {
+            log.info("Can't challenge word when game status is " + game.getGameState().getStatus());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        if (game.getGameState() == null || !game.getGameState().getId().equals(challengerInfo.gameId())){
+            log.info("Game not found");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (!game.getGameState().getPlayerMap().containsKey(challengerInfo.challengerId())) {
+            System.out.println(game.getGameState().getPlayerMap().toString());
+            log.info("Player not found");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            log.info(String.format("Received request from %s to challenge turn.", challengerInfo.challengerId()));
+            turnController.challengeWord(challengerInfo);
+            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
+        } catch (Exception e) {
+            log.info("Error: " + e.toString());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
