@@ -323,7 +323,6 @@ public class Board {
                 if (row+1 < BOARD_SIZE && this.getSquare(row+1,j).getLetter() != DEFAULT) return true;
             }
         }
-        System.out.println("has surrounding tiles");
         return false;
     }
 
@@ -415,6 +414,7 @@ public class Board {
         String totalWord = new String(word);
         if (!isHorizontal) {
             // check above & below
+            row = turnInfo.row() + totalWord.length() - 1;
             while (row+1 < BOARD_SIZE && this.getSquare(row+1,col).getLetter() != DEFAULT) {
                 totalWord = totalWord +  this.getSquare(row+1,col).getLetter();
                 row++;
@@ -450,7 +450,8 @@ public class Board {
                 index++;
             }
         } else {
-            // check above & below
+            // check left and right
+            col = turnInfo.column() + totalWord.length() - 1;
             while (col+1 < BOARD_SIZE && this.getSquare(row,col+1).getLetter() != DEFAULT) {
                 totalWord = totalWord +  this.getSquare(row,col+1).getLetter();
                 col++;
