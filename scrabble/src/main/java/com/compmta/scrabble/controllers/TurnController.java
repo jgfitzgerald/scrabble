@@ -232,7 +232,7 @@ public class TurnController {
      * Ends the game. Sets the status to finished, preventing further requests.
      * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
      */
-    private void endGame() {
+    protected void endGame() {
         gsController.getGameState().setStatus(FINISHED);
         PlayerInfo currWinner = null;
         int maxScore = 0;
@@ -248,4 +248,5 @@ public class TurnController {
             }
         }
     }
+
 }
