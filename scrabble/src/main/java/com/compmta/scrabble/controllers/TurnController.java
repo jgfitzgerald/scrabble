@@ -2,12 +2,11 @@ package com.compmta.scrabble.controllers;
 
 //imports
 
+import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.controllers.DTO.WordInfo;
-import com.compmta.scrabble.model.Board;
-import com.compmta.scrabble.model.PlayerInfo;
-import com.compmta.scrabble.model.Turn;
+import com.compmta.scrabble.model.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +15,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import static com.compmta.scrabble.model.GameStatus.FINISHED;
-import static com.compmta.scrabble.model.GameStatus.IN_PROGRESS;
+import static com.compmta.scrabble.model.GameStatus.*;
 
 @Getter
 @Setter
@@ -29,10 +30,17 @@ public class TurnController {
     //instance variables
     @Autowired
     private GameStateController gsController;
-    static PlayerInfo currPlayer;
     static Board board;
-    private int turnCount;
+    static PlayerInfo currPlayer;
+    private TurnInfo currentTurn;
+    private List<WordInfo> words;
+    private int score;
+
+    private boolean notInitial;
     static ArrayList<String> challengers;
+    private Thread turnThread;
+
+    private CountDownLatch latch;
 
     /**
      * Takes a TurnInfo DTO and applies the given requests if applicable.
@@ -40,7 +48,7 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): unplayed letters, challenging
+    //TODO priority list (in order of highest to lowest): Testing and refactoring
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (gsController.getGameState().getStatus() != IN_PROGRESS) {
             throw new IllegalStateException("Cannot place command as game is " + gsController.getGameState().getStatus());
@@ -49,17 +57,13 @@ public class TurnController {
             gsController.getGameState().getTurnLog().add(null);
             return null;
         }
-        if (challengers.contains(turnInfo.id())) {
-            challengers.remove(challengers.indexOf(turnInfo.id()));
-            return null;
-        }
         if (gsController.getGameState().getPlayerMap().get(turnInfo.id()) == null) {
             throw new IllegalArgumentException("This player is not in the game.");
         }
         if (turnInfo.id().compareTo(currPlayer.getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
-        if (turnCount == 0) {
+        if (!notInitial) {
             if (!board.validateInitialMove(turnInfo)) {
                 throw new IllegalArgumentException("Invalid initial move request. Please try again.");
             }
@@ -77,21 +81,20 @@ public class TurnController {
                 word[i] = Board.DEFAULT;
             }
         }
-
         for (char c : word) {
             if (c != Board.DEFAULT && !currPlayer.getRack().contains(c)) {
                 throw new IllegalArgumentException("Invalid word choice, rack does not contain 1 or more required letters: " + c);
             }
         }
 
-        for (WordInfo w : board.detectWords(turnInfo)) {
-            System.out.println(w);
-        }
+        latch = new CountDownLatch(1);
+        turnThread = Thread.currentThread();
+        currentTurn = turnInfo;
+        words = board.detectWords(turnInfo);
+        score = board.scoreMove(turnInfo);
 
-        for (WordInfo w : board.detectWords(turnInfo)) {
-            if (!gsController.getGameState().dictionary.verifyWord(w.word())) {
-                throw new IllegalArgumentException("Following word is not contained in the dictionary: " + w.word());
-            }
+        for (WordInfo w : words) {
+            System.out.println(w);
         }
 
         System.out.println("Removing tiles from rack");
@@ -100,52 +103,47 @@ public class TurnController {
                 currPlayer.getRack().remove(currPlayer.getRack().indexOf(c));
             }
         }
-        for (Integer i : turnInfo.blankIndexes()) {
-            if (turnInfo.isHorizontal()) {
-                board.setBlankLetter(turnInfo.row(),turnInfo.column() + i, turnInfo.word()[i]);
-            } else {
-                board.setBlankLetter(turnInfo.row() + i,turnInfo.column(), turnInfo.word()[i]);
-            }
-            currPlayer.getRack().remove(currPlayer.getRack().indexOf(' '));
-        }
 
-        System.out.println("Making new Turn");
         Turn newMove = new Turn(turnInfo);
-        gsController.getGameState().getTurnLog().add(newMove);
-
-        int score = board.scoreMove(turnInfo);
         newMove.setScore(score);
         currPlayer.updateScore(score);
+
+        System.out.println("Applying turn");
+        board.applyTurn(newMove);
+
+        System.out.println("Adding turn to log");
+        gsController.getGameState().getTurnLog().add(newMove);
 
         if (currPlayer.getRack().isEmpty()) {
             currPlayer.updateScore(50);
         }
 
-        System.out.println("Applying turn");
-        board.applyTurn(newMove);
-
-        gsController.getGameState().drawLetters(currPlayer);
-
-        System.out.println("Ending Turn");
-        this.endTurn();
-        turnCount++;
-
-        return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getGameState().getPlayers());
+        gsController.getGameState().setStatus(CHALLENGE);
+        return new GameStateInfo(gsController.getGameState().getId(), gsController.getGameState().getStatus(), board, gsController.getGameState().getPlayerMap());
     } //startTurn()
 
     /**
      * Ends the turn of the current player.
      */
     private void endTurn() {
+        for (PlayerInfo p : gsController.getGameState().getPlayers()) {
+            if (p.getTotalScore() > 0) {
+                notInitial = true;
+            }
+        }
+        gsController.getGameState().drawLetters(currPlayer);
         if (gsController.getGameState().getPlayers().indexOf(currPlayer) == gsController.getGameState().getPlayers().size()-1) {
             this.setCurrPlayer(gsController.getGameState().getPlayers().get(0));
         } else {
             int next = gsController.getGameState().getPlayers().indexOf(currPlayer) + 1;
             this.setCurrPlayer(gsController.getGameState().getPlayers().get(next));
+            if (challengers.contains(currPlayer.getId())) {
+                this.endTurn();
+            }
         }
 
         if (gsController.getGameState().checkEndConditions()) {
-            gsController.endGame();
+            this.endGame();
         }
     }
 
@@ -205,8 +203,9 @@ public class TurnController {
      * Ends the game. Sets the status to finished, preventing further requests.
      * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
      */
-    protected void endGame() {
+    private void endGame() {
         gsController.getGameState().setStatus(FINISHED);
+        gsController.getGameState().unplayedLetterScores();
         PlayerInfo currWinner = null;
         int maxScore = 0;
         for (PlayerInfo p : gsController.getGameState().getPlayers()) {
@@ -214,12 +213,48 @@ public class TurnController {
                 currWinner = p;
                 maxScore = currWinner.getTotalScore();
             }
-            if (maxScore == 0) {
-                currPlayer = null;
-            } else {
-                currPlayer = p;
-            }
+            if (maxScore == 0) currPlayer = null; else currPlayer = p;
         }
     }
 
+    public void challengePhase(TurnInfo turnInfo) {
+        try {
+            System.out.println("Five seconds to challenge.");
+            latch.await(5, TimeUnit.SECONDS);
+            gsController.getGameState().setStatus(IN_PROGRESS);
+            this.endTurn();
+        } catch (InterruptedException e) {
+            // return tiles to rack
+            board.removeWord(turnInfo);
+            currPlayer.updateScore(-1 * board.scoreMove(turnInfo));
+            System.out.println("Successfully challenged");
+            for (char c : turnInfo.word()) {
+                if (c != Board.DEFAULT) {
+                    currPlayer.getRack().add(c);
+                }
+            }
+            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size() - 1);
+            gsController.getGameState().setStatus(IN_PROGRESS);
+            this.endTurn();
+        }
+    }
+
+    public void challengeWord(ChallengeInfo challengerInfo) {
+        System.out.println("In challenge word");
+        for (WordInfo w : words) {
+            System.out.println(w);
+        }
+        Challenge challenge = new Challenge(words);
+        if (!challenge.isValid()) {
+            // word is valid, interrupt takeTurn and continue
+            System.out.println("invalid challenge");
+            challengers.add(challengerInfo.challengerId());
+            latch.countDown();
+        } else {
+            System.out.println("valid challenge");
+            // word is invalid, interrupt takeTurn and cancel
+            turnThread.interrupt();
+            latch.countDown();
+        }
+    }
 }
