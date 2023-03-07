@@ -19,8 +19,10 @@ function Home() {
       }).then((response) => {
         console.log(response);
         if (response.status === axios.HttpStatusCode.Ok) {
+          console.log("JOIN REPONSE:::");
+          console.log(response);
           localStorage.setItem('name', nickname);
-          navigate('/play');
+          navigate('/play', {replace: true, state: response.data});
         }
       }).catch((error) => {
         console.log(error);

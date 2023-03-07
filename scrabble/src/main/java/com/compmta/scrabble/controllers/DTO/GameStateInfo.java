@@ -6,6 +6,6 @@ import com.compmta.scrabble.model.PlayerInfo;
 
 import java.util.Map;
 
-public record GameStateInfo(String id, GameStatus status, Board board, Map<String, PlayerInfo> players) {
+public record GameStateInfo(String id, GameStatus status, Board board, Map<String, PlayerInfo> playerMap) {
 
 }

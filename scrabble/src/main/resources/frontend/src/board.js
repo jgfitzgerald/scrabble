@@ -63,25 +63,25 @@ const Board = ({data, thisTurn, tileClick}) => {
             {
                 data ? 
                 // show the current game board
-                data.board.map((row, i) => {
+                data.board.map((row, r) => {
                     return (
-                        row.map((val, j) => {
+                        row.map((val, c) => {
                             // console.log(`val.letter !== data.default ? ${val.letter !== data.default}`)
                             return (
                                 val.letter !== "\u0000" ?
                                 <Tile
                                     char={val.letter}
                                     drag={false}
-                                    currTurn={Object.keys(thisTurn).includes(`${i}/${j}`)}
-                                    onClick={(e) => tileClick(e, `${i}/${j}`)}
+                                    currTurn={Object.keys(thisTurn).includes(`${r}/${c}`)}
+                                    onClick={(e) => tileClick(e, `${r}/${c}`)}
                                 /> :
                                 <DropTarget
                                     targetKey="square"
                                     onHit={dropped}
-                                    dropData={{name: `${i}/${j}`}}
+                                    dropData={{name: `${r}/${c}`}}
                                 >
-                                    <div style={{...square, ...styles[squares[i][j]]}}>
-                                        { squares[i][j] !== 'N' ? <p>{squares[i][j]}</p> : <div /> }
+                                    <div style={{...square, ...styles[squares[r][c]]}}>
+                                        { squares[r][c] !== 'N' ? <p>{squares[r][c]}</p> : <div /> }
                                     </div>
                                 </DropTarget>
                             );
@@ -90,15 +90,14 @@ const Board = ({data, thisTurn, tileClick}) => {
                 })
                 :
                 // show the standard board
-                squares.map((row, i) => {
+                squares.map((row, r) => {
                     return (
-                        row.map((val, j) => {
-                            // console.log(`${i} ${j}: ${val}`)
+                        row.map((val, c) => {
                             return (
                                 <DropTarget
                                     targetKey="square"
                                     onHit={dropped}
-                                    dropData={{name: `${i}/${j}`}}
+                                    dropData={{name: `${r}/${c}`}}
                                 >
                                     <div style={{...square, ...styles[val]}}>
                                         { val !== 'N' ? <p>{val}</p> : <div /> }

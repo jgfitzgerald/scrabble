@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/static/css/main.4e059b5e.css",
-    "main.js": "/static/js/main.8fe3abfa.js",
+    "main.js": "/static/js/main.436b4d1f.js",
     "static/media/logo.png": "/static/media/logo.1fd9f4eaf6b14f58ae4e.png",
     "static/media/felt.png": "/static/media/felt.19296ea2cf043ac47bcd.png",
     "static/media/wood.jpg": "/static/media/wood.800c1ab4041428256965.jpg",
     "static/media/Interstate-Bold.ttf": "/static/media/Interstate-Bold.ddfe087305105970bd9e.ttf",
     "index.html": "/index.html",
     "main.4e059b5e.css.map": "/static/css/main.4e059b5e.css.map",
-    "main.8fe3abfa.js.map": "/static/js/main.8fe3abfa.js.map"
+    "main.436b4d1f.js.map": "/static/js/main.436b4d1f.js.map"
   },
   "entrypoints": [
     "static/css/main.4e059b5e.css",
-    "static/js/main.8fe3abfa.js"
+    "static/js/main.436b4d1f.js"
   ]
 }

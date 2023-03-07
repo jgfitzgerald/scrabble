@@ -38,11 +38,11 @@ root.render(
     <ThemeProvider theme={theme}>
       <HashRouter>
         <Routes>
-          <Route path='/' element={<Home/>} />
-          <Route path='/play' element={<Game/>} />
-          <Route path='/rules' element={<Rules/>} />
+          <Route path='/'         element={<Home/>}     />
+          <Route path='/play'     element={<Game/>}     />
+          <Route path='/rules'    element={<Rules/>}    />
           <Route path='/settings' element={<Settings/>} />
-          <Route path='*' element={<NotFound/>} />
+          <Route path='*'         element={<NotFound/>} />
         </Routes>
       </HashRouter>
     </ThemeProvider>
