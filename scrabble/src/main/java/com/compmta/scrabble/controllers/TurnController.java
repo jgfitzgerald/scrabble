@@ -233,7 +233,7 @@ public class TurnController {
                     currPlayer.getRack().add(c);
                 }
             }
-            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size()-1);
+            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size() - 1);
             gsController.getGameState().setStatus(IN_PROGRESS);
             this.endTurn();
         }
@@ -253,8 +253,8 @@ public class TurnController {
         } else {
             System.out.println("valid challenge");
             // word is invalid, interrupt takeTurn and cancel
-            latch.countDown();
             turnThread.interrupt();
+            latch.countDown();
         }
     }
 }
