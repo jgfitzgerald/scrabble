@@ -19,7 +19,7 @@ function Home() {
       }).then((response) => {
         console.log(response);
         if (response.status === axios.HttpStatusCode.Ok) {
-          console.log("JOIN RESPONSE:::");
+          console.log("JOIN REPONSE:::");
           console.log(response);
           localStorage.setItem('name', nickname);
           navigate('/play', {replace: true, state: response.data});
@@ -28,6 +28,10 @@ function Home() {
         console.log(error);
       });
     }
+  }
+
+  const handleKey = (e) => {
+    if (e.keyCode === 13) checkNickname();
   }
 
   useEffect(() => {
@@ -51,6 +55,7 @@ function Home() {
             variant='filled'
             defaultValue={nickname}
             onChange={(event) => setNickname(event.target.value)}
+            onKeyUp={handleKey}
           />
           <Button
             className='homeMenuBtn'

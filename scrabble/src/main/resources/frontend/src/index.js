@@ -5,7 +5,7 @@ import { ThemeProvider } from '@emotion/react';
 import { createTheme } from '@mui/material/styles';
 import { BrowserRouter as HashRouter, Route, Routes} from "react-router-dom";
 
-import Home from './Home';
+import Home from './pages/Home';
 import Game from './pages/Game';
 import Rules from './pages/Rules';
 import Settings from './pages/Settings';
@@ -17,14 +17,14 @@ const theme = createTheme({
   palette: {
     primary: {
       main: '#b63f4b',
-      contrastText: '#000000',
+      contrastText: '#bfbc95',
     },
     secondary: {
       light: '#ea5462',
       main: '#8c2b2b',
       contrastText: '#7c7c7c',
     },
-    contrastThreshold: 3,
+    contrastThreshold: 1000,
     tonalOffset: 0.2,
   },
   typography: {

@@ -1,5 +1,5 @@
 import './NotFound.css';
-import Tile from '../tile.js';
+import Tile from '../components/tile.js';
 
 const NotFound = (props) => {
 

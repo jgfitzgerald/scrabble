@@ -253,8 +253,8 @@ public class TurnController {
         } else {
             System.out.println("valid challenge");
             // word is invalid, interrupt takeTurn and cancel
-            latch.countDown();
             turnThread.interrupt();
+            latch.countDown();
         }
     }
 }

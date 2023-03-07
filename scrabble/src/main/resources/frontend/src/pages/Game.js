@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import axios from 'axios';
-import Board from '../board.js';
-import Tile from '../tile.js';
+import Board from '../components/board.js';
+import Tile from '../components/tile.js';
 import Stomp, {Client} from '@stomp/stompjs';
 import { DragDropContext, Droppable } from 'react-drag-drop-container';
 
@@ -18,8 +18,8 @@ const Game = (props) => {
         // console.log(response);
         if (response.body) {
           let data = JSON.parse(response.body);
-          // console.log('DATA:::');
-          // console.log(data);
+          console.log('DATA:::');
+          console.log(data);
           setGameState(data);
           
           axios.get('/currPlayer', {
@@ -64,13 +64,13 @@ const Game = (props) => {
   const [gameState, setGameState] = useState(state);
 
   const voteToStart = () => {
-    console.log(gameState.id);
-    console.log(name);
+    // console.log(gameState.id);
+    // console.log(name);
     axios.patch('/vote', {
       gameId: gameState.id,
       playerId: name
     }).then((response) => {
-      console.log('start response:::');
+      console.log('VOTE RESPONSE:::');
       console.log(response);
     }).catch((error) => {
       console.log(error);
@@ -91,12 +91,12 @@ const Game = (props) => {
 
   const makeMove = () => {
     let placement = checkPlacement();
-    console.log(placement);
+    // console.log(placement);
     if (placement === {}) return; // show some sort of message to user
     // create turn state info
     let word = Object.values(placedThisTurn);
-    console.log("word:::");
-    console.log(word);
+    // console.log("word:::");
+    // console.log(word);
 
     // questions for julia
     // - [TurnController line 76] can't call isEmpty() on array (need to convert JS Array to Java List<Int>)
@@ -150,8 +150,8 @@ const Game = (props) => {
       }
     }
 
-    console.log('NULLED WORD!!!!!');
-    console.log(word);
+    // console.log('NULLED WORD!!!!!');
+    // console.log(word);
 
 
     let blankIndices = Object.values(placedThisTurn).reduce(
@@ -161,7 +161,7 @@ const Game = (props) => {
       }, []
     );
     blankIndices = typeof blankIndices !== undefined ? blankIndices : [];
-    console.log(blankIndices);
+    // console.log(blankIndices);
 
     axios.post('/move', {
       id: name.toString(), // string // DONE
@@ -188,17 +188,17 @@ const Game = (props) => {
     let rows = {};
     let cols = {};
     for (let key in placedThisTurn) {
-      console.log(key);
+      // console.log(key);
       let coords = key.split('/');
       rows[coords[0]] = 1;
       cols[coords[1]] = 1;
     }
-    console.log(rows);
-    console.log(cols);
+    // console.log(rows);
+    // console.log(cols);
     let rowKeys = Object.keys(rows).sort((a, b) => compare(a, b));
     let colKeys = Object.keys(cols).sort((a, b) => compare(a, b));
-    console.log(rowKeys);
-    console.log(colKeys);
+    // console.log(rowKeys);
+    // console.log(colKeys);
 
     // Return the first row and column along with if it is horizontal or not
     if (rowKeys.length === 1) {
@@ -241,8 +241,9 @@ const Game = (props) => {
       gameId: gameState.id,
       challengerId: name
     }).then((response)=> {
-      console.log('PASS RESPONSE:::');
+      console.log('CHALLENGE RESPONSE:::');
       console.log(response);
+      getState();
     }).catch((error) => {
       console.log(error);
     })
@@ -270,7 +271,7 @@ const Game = (props) => {
 
   // this needs to have the char as well
   function returnToRack(e, coords) {
-    console.log(e);
+    // console.log(e);
     let stateCopy = {...gameState};
     // update tiles placed this turn
     // console.log('placedThisTurn: ', placedThisTurn);
@@ -359,6 +360,7 @@ const Game = (props) => {
       </Button>
       <Button
         variant='contained'
+        color='#bfbc95'
         onClick={() => shuffleRack()}>
         Shuffle
       </Button>
