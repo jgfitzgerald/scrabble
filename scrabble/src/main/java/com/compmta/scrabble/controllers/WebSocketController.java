@@ -144,7 +144,7 @@ public class WebSocketController {
      * @param vote
      */
     @PatchMapping("/vote")
-    public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
+    public ResponseEntity<Void> vote(@RequestBody VoteInfo vote) {
         if (game.getGameState().getStatus() == FINISHED) {
             log.info("This game has already ended.");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
