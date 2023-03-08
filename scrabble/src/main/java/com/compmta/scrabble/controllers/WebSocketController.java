@@ -163,7 +163,7 @@ public class WebSocketController {
      * @param vote
      */
     @PostMapping("/voteToEnd")
-    public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
+    public ResponseEntity<Void> voteToEnd(@RequestBody VoteInfo vote) {
         System.out.println(vote.gameId());
         System.out.println(game.getGameState().getId());
         if (game.getGameState().getStatus() == FINISHED) {
