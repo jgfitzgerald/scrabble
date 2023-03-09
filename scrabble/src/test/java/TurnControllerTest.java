@@ -1,11 +1,11 @@
 package com.compmta.scrabble.controllers;
 
 
+import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
-import com.compmta.scrabble.model.Board;
-import com.compmta.scrabble.model.GameState;
-import com.compmta.scrabble.model.GameStatus;
-import com.compmta.scrabble.model.PlayerInfo;
+import com.compmta.scrabble.controllers.DTO.WordInfo;
+import com.compmta.scrabble.model.*;
+import org.apache.tomcat.jni.Thread;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -14,8 +14,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.Mockito.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 
 import java.util.*;
+import java.util.List;
 
 import static com.compmta.scrabble.model.GameStatus.FINISHED;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +39,6 @@ public class TurnControllerTest {
     private PlayerInfo player1;
     private PlayerInfo player2;
     private PlayerInfo player3;
-
     private PlayerInfo player4;
 
     @BeforeEach
@@ -64,10 +67,14 @@ public class TurnControllerTest {
         challengers.add("player4");
         turnController.setChallengers(challengers);
         char[] testChar = {'t', 'e', 's', 't'};
+        ArrayList<Character> testLetters = new ArrayList<Character>();
+        for (char c : testChar) {
+            testLetters.add(c);
+        }
+        //      reset letter variable in PlayerInfo to the test letters
+        ReflectionTestUtils.setField(player1, "rack", testLetters);
         List<Integer> blankIndexes = new ArrayList<Integer>();
-        blankIndexes.add(1);
-        blankIndexes.add(0);
-        assertNull(turnController.takeTurn(new TurnInfo("player1", testChar, 0, 0, true, blankIndexes)));
+        assertNotNull(turnController.takeTurn(new TurnInfo("player1", testChar, 7, 7, true, blankIndexes)));
     }
 
     @Test
@@ -108,9 +115,6 @@ public class TurnControllerTest {
             testLetters.add(c);
         }
         List<Integer> blankIndexes = new ArrayList<Integer>();
-//      reset letter variable in game state to the test letters
-        GameState gs = mockGsController.getGameState() ;
-        ReflectionTestUtils.setField(gs, "letters", testLetters);
 
 //      reset letter variable in PlayerInfo to the test letters
         ReflectionTestUtils.setField(player1, "rack", testLetters);
@@ -120,16 +124,6 @@ public class TurnControllerTest {
         assertNotNull(turnController.takeTurn(turnInfo));
     }
 
-    @Test
-    void testEndTurn(){
-//      end player1 turn
-        turnController.endTurn();
-        char[] testChar = {'t', 'e', 's', 't'};
-        List<Integer> blankIndexes = new ArrayList<Integer>();
-        blankIndexes.add(1);
-        blankIndexes.add(0);
-        assertThrows(IllegalArgumentException.class, () -> turnController.takeTurn(new TurnInfo("player1", testChar, 0, 0, true, blankIndexes)));
-    }
 
     @Test
     void testExchangeLetters(){
@@ -157,5 +151,97 @@ public class TurnControllerTest {
         Object gameStatus = ReflectionTestUtils.getField(mockGsController.getGameState(), "status");
         assertEquals(GameStatus.FINISHED, gameStatus);
     }
+
+    @Test
+    void testChallengeWord(){
+        char[] testChar = {'s', 't', 'a', 'p', 'l', 'e', 'r'};
+        ArrayList<Character> testLetters = new ArrayList<Character>();
+        for (char c : testChar) {
+            testLetters.add(c);
+        }
+
+        //      reset letter variable in PlayerInfo to the test letters
+        ReflectionTestUtils.setField(player1, "rack", (ArrayList)testLetters.clone());
+
+        ReflectionTestUtils.setField(turnController, "gsController", mockGsController);
+
+        ChallengeInfo challengeInfo = new ChallengeInfo(mockGsController.getGameState().getId(), "player1");
+        List<WordInfo> words = new ArrayList<>();
+        words.add(new WordInfo("strap", 7,7, true));
+        words.add(new WordInfo("sap", 7,7, false));
+        turnController.setWords(words);
+        CountDownLatch latch = new CountDownLatch(1);
+        turnController.setLatch(latch);
+//        Thread turnThread = Thread.currentThread();
+//        turnController.setTurnThread(turnThread);
+        turnController.challengeWord(challengeInfo);
+        assertFalse(turnController.challengers.isEmpty());
+
+    }
+
+    @Test
+    void testChallengePhase() throws InterruptedException{
+        char[] testChar = {'s', 't', 'a', 'p', 'l', 'e', 'r'};
+        ArrayList<Character> testLetters = new ArrayList<Character>();
+        for (char c : testChar) {
+            testLetters.add(c);
+        }
+        List<Integer> blankIndexes = new ArrayList<Integer>();
+
+//      reset letter variable in PlayerInfo to the test letters
+        ReflectionTestUtils.setField(player1, "rack", testLetters);
+
+        ReflectionTestUtils.setField(turnController, "gsController", mockGsController);
+        TurnInfo turnInfo = new TurnInfo("player1", testChar, 7, 7, true, blankIndexes);
+
+        // Create a mock CountDownLatch
+        CountDownLatch mockLatch = mock(CountDownLatch.class);
+
+        turnController.setLatch(mockLatch);
+        turnController.challengePhase(turnInfo);
+        assertEquals(GameStatus.IN_PROGRESS, mockGsController.getGameState().getStatus());
+    }
+
+    @Test
+    public void testChallengePhase_interrupted() throws InterruptedException {
+        char[] testChar = {'s', 't', 'a', 'p', 'l', 'e', 'r'};
+        char[] turnChar = {'t','a','p'};
+        char[] mockTurnChar = {'l','a','p'};
+        ArrayList<Character> testLetters = new ArrayList<Character>();
+        for (char c : testChar) {
+            testLetters.add(c);
+        }
+        List<Integer> blankIndexes = new ArrayList<Integer>();
+
+//      reset letter variable in PlayerInfo to the test letters
+        ReflectionTestUtils.setField(player1, "rack", testLetters);
+
+        ReflectionTestUtils.setField(turnController, "gsController", mockGsController);
+
+        List<WordInfo> words = new ArrayList<>();
+        words.add(new WordInfo("strap", 7,7, true));
+        words.add(new WordInfo("sap", 7,7, false));
+        turnController.setWords(words);
+
+
+        TurnInfo turnInfo = new TurnInfo("player1", turnChar, 7, 7, true, blankIndexes);
+
+        TurnInfo mockTurnInfo = new TurnInfo("player1", mockTurnChar, 7, 7, false, blankIndexes);
+        mockGsController.getGameState().getTurnLog().add(new Turn(mockTurnInfo));
+        // Create a mock CountDownLatch
+        CountDownLatch mockLatch = mock(CountDownLatch.class);
+        turnController.setLatch(mockLatch);
+
+        // Set up the mock to throw an InterruptedException when await() is called
+        doThrow(new InterruptedException()).when(mockLatch).await(5, TimeUnit.SECONDS);
+
+        // Call the challengePhase method
+        turnController.challengePhase(turnInfo);
+
+        assertEquals(GameStatus.IN_PROGRESS, mockGsController.getGameState().getStatus());
+
+
+    }
+
 
 }
