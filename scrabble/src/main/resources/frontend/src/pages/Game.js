@@ -335,32 +335,37 @@ const Game = (props) => {
     <div className="gameMenu">
       <Button
         variant='contained'
+        color='primary'
         onClick={() => voteToStart()}>
         Vote to Start
       </Button>
       <Button
         variant='contained'
+        color='primary'
         onClick={() => getState()}>
         Game State
       </Button>
       <Button
         variant='contained'
+        color='primary'
         onClick={() => makeMove()}>
         Play Move
       </Button>
       <Button
         variant='contained'
+        color='primary'
         onClick={() => passTurn()}>
         Pass Turn
       </Button>
       <Button
         variant='contained'
+        color='primary'
         onClick={() => challengeMove()}>
         Challenge
       </Button>
       <Button
         variant='contained'
-        color='#bfbc95'
+        color='primary'
         onClick={() => shuffleRack()}>
         Shuffle
       </Button>
