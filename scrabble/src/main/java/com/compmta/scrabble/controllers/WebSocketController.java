@@ -70,10 +70,6 @@ public class WebSocketController {
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        if (!game.getGameState().getPlayers().contains(turnInfo.id())) {
-            log.info("Invalid request, player not found.");
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         try{
             log.info(String.format("Received request from %s to place letters: " + Arrays.toString(turnInfo.word()), turnInfo.id()));
             turnController.takeTurn(turnInfo);
