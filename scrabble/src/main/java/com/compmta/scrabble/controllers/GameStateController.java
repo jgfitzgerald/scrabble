@@ -78,7 +78,7 @@ public class GameStateController {
      * Will automatically start the game if game is pending and all player's votes are true.
      * @param id The id of the player who voted
      */
-    void vote(String id) {
+    public void vote(String id) {
         for (PlayerInfo p : gameState.getPlayers()) {
             if (p.getId().equals(id)) {
                 p.setVote(!p.getVote());

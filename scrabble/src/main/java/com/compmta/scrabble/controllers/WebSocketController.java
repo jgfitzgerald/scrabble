@@ -70,7 +70,7 @@ public class WebSocketController {
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        if (!game.getGameState().getPlayers().contains(turnInfo.id())) {
+        if (!game.getGameState().getPlayerMap().containsKey(turnInfo.id())) {
             log.info("Invalid request, player not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -94,13 +94,14 @@ public class WebSocketController {
      */
     @PostMapping("/pass")
     public ResponseEntity<Void> passTurn(@RequestBody PlayerId id) {
-        if (game.getGameState().getStatus() != IN_PROGRESS) {
-            log.info("Error: Cannot pass turn when game is " + game.getGameState().getStatus());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
         if(game.getGameState() == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (game.getGameState().getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot pass turn when game is " + game.getGameState().getStatus());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
             log.info(String.format("Received request to pass %s's turn.",id));
