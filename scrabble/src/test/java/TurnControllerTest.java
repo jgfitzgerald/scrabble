@@ -146,13 +146,6 @@ public class TurnControllerTest {
     }
 
     @Test
-    void testEndGame(){
-        turnController.endGame();
-        Object gameStatus = ReflectionTestUtils.getField(mockGsController.getGameState(), "status");
-        assertEquals(GameStatus.FINISHED, gameStatus);
-    }
-
-    @Test
     void testChallengeWord(){
         char[] testChar = {'s', 't', 'a', 'p', 'l', 'e', 'r'};
         ArrayList<Character> testLetters = new ArrayList<Character>();

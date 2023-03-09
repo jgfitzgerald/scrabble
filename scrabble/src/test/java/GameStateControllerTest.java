@@ -90,7 +90,6 @@ class GameStateControllerTest {
         assertNotNull(gameState.getBoard());
         assertNotNull(gameState.getPlayers());
     }
-
     @Test
     void testVoteToEnd() {
         for (int i = 0; i < MAX_PLAYERS; i++) {
