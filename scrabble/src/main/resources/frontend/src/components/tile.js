@@ -52,12 +52,13 @@ const Tile = (props) => {
     };
     const placedStyle = {
         width: '100%',
-        fontSize: '65%',
+        fontSize: '60%',
         cursor: 'pointer'
     };
     const dragStyle = {
         cursor: 'pointer',
         width: '50px',
+        fontSize: '1.5em',
     };
     const valueStyle = {
         position: 'absolute',
@@ -87,14 +88,14 @@ const Tile = (props) => {
                     style={{...tyleStyle, ...placedStyle}}
                     onClick={props.onClick}
                 >
-                    <h1>{char.toUpperCase()}</h1>
+                    <h2>{char.toUpperCase()}</h2>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>
             }}
         />
     } else {
         return <div style={{...tyleStyle, ...placedStyle, ...{cursor: 'default'}}}>
-            <h1>{char.toUpperCase()}</h1>
+            <h2>{char.toUpperCase()}</h2>
             <p style={valueStyle}>{values[char]}</p>
         </div>
     }

@@ -59,6 +59,7 @@ const Game = (props) => {
   const name = localStorage.getItem('name');
   const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
+  const [blankCoords, updateBlankCoords] = useState([]);
 
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
@@ -114,6 +115,7 @@ const Game = (props) => {
 
     // word.splice(col, 0, null);
 
+    // need to do this better, works with one separation but not more
     if (placement.isHorizontal) {
       // get sorted array of cols
       let cols = Object.keys(placedThisTurn).reduce(function(acc, val, index) {
@@ -123,7 +125,7 @@ const Game = (props) => {
       
       for (let c = 1; c < cols.length; c++) {
         let diff = cols[c] - cols[c-1];
-        // check if column differnce is 1
+        // check if column difference is 1
         if (diff === 1) continue;
         // if it's greater than 1, insert null the appropriate number of times
         else do {
@@ -140,7 +142,7 @@ const Game = (props) => {
       
       for (let r = 1; r < rows.length; r++) {
         let diff = rows[r] - rows[r-1];
-        // check if column differnce is 1
+        // check if column difference is 1
         if (diff === 1) continue;
         // if it's greater than 1, insert null the appropriate number of times
         else do {
@@ -150,8 +152,8 @@ const Game = (props) => {
       }
     }
 
-    // console.log('NULLED WORD!!!!!');
-    // console.log(word);
+    console.log('NULLED WORD!!!!!');
+    console.log(word);
 
 
     let blankIndices = Object.values(placedThisTurn).reduce(
