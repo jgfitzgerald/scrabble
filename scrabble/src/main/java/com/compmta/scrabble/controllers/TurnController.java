@@ -233,7 +233,7 @@ public class TurnController {
                     currPlayer.getRack().add(c);
                 }
             }
-            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size()-1);
+            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size() - 1);
             gsController.getGameState().setStatus(IN_PROGRESS);
             this.endTurn();
         }

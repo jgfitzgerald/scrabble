@@ -70,6 +70,10 @@ public class WebSocketController {
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        if (!game.getGameState().getPlayerMap().containsKey(turnInfo.id())) {
+            log.info("Invalid request, player not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         try{
             log.info(String.format("Received request from %s to place letters: " + Arrays.toString(turnInfo.word()), turnInfo.id()));
             turnController.takeTurn(turnInfo);
@@ -144,7 +148,7 @@ public class WebSocketController {
      * @param vote
      */
     @PatchMapping("/vote")
-    public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
+    public ResponseEntity<Void> vote(@RequestBody VoteInfo vote) {
         if (game.getGameState().getStatus() == FINISHED) {
             log.info("This game has already ended.");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
