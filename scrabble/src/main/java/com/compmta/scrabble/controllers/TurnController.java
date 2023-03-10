@@ -138,6 +138,7 @@ public class TurnController {
             int next = gsController.getGameState().getPlayers().indexOf(currPlayer) + 1;
             this.setCurrPlayer(gsController.getGameState().getPlayers().get(next));
             if (challengers.contains(currPlayer.getId())) {
+                challengers.remove(currPlayer.getId());
                 this.endTurn();
             }
         }
