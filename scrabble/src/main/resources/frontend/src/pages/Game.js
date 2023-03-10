@@ -82,6 +82,7 @@ const Game = (props) => {
     }).then((response) => {
       if (response.status === axios.HttpStatusCode.Ok) {
         let data = response.data;
+        console.log(data);
         setGameState(data);
       }
     }).catch((error) => {
@@ -111,6 +112,8 @@ const Game = (props) => {
     for (let c = 0; c < word.length; c++) {
       word[c] = word[c].charAt(0);
     }
+    console.log("word:::");
+    console.log(word);
 
     // word.splice(col, 0, null);
 
@@ -121,7 +124,7 @@ const Game = (props) => {
         return acc;
       }, []).sort((a,b) => compare(a,b));
       
-      for (let c = 1; c < cols.length; c++) {
+      for (let c = cols.length -1; c > 0; c--) {
         let diff = cols[c] - cols[c-1];
         // check if column differnce is 1
         if (diff === 1) continue;
@@ -138,7 +141,7 @@ const Game = (props) => {
         return acc;
       }, []).sort((a,b) => compare(a,b));
       
-      for (let r = 1; r < rows.length; r++) {
+      for (let r = rows.length -1; r > 0; r--) {
         let diff = rows[r] - rows[r-1];
         // check if column differnce is 1
         if (diff === 1) continue;
@@ -150,8 +153,8 @@ const Game = (props) => {
       }
     }
 
-    // console.log('NULLED WORD!!!!!');
-    // console.log(word);
+    console.log('NULLED WORD!!!!!');
+    console.log(word);
 
 
     let blankIndices = Object.values(placedThisTurn).reduce(
@@ -360,6 +363,7 @@ const Game = (props) => {
       <Button
         variant='contained'
         color='primary'
+        disabled={gameState.status !== "CHALLENGE"}
         onClick={() => challengeMove()}>
         Challenge
       </Button>
