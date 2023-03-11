@@ -5,9 +5,6 @@ import { DropTarget } from 'react-drag-drop-container';
 
 const Board = ({data, thisTurn, tileClick}) => {
 
-    console.log('BOARD RENDERED');
-    // console.log(thisTurn);
-
     // Board stylings
     const boardStyle = {
         display: 'grid',

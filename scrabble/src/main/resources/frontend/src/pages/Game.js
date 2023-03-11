@@ -6,7 +6,7 @@ import axios from 'axios';
 import Board from '../components/board.js';
 import Tile from '../components/tile.js';
 import Stomp, {Client} from '@stomp/stompjs';
-import { DragDropContext, Droppable } from 'react-drag-drop-container';
+import { DropTarget } from 'react-drag-drop-container';
 
 
 const Game = (props) => {
@@ -59,7 +59,7 @@ const Game = (props) => {
   const name = localStorage.getItem('name');
   const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
-  const [blankCoords, updateBlankCoords] = useState([]);
+  const [toExchange, setToExchange] = useState([]);
 
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
@@ -118,7 +118,6 @@ const Game = (props) => {
 
     // word.splice(col, 0, null);
 
-    // need to do this better, works with one separation but not more
     if (placement.isHorizontal) {
       // get sorted array of cols
       let cols = Object.keys(placedThisTurn).reduce(function(acc, val, index) {
@@ -128,7 +127,7 @@ const Game = (props) => {
       
       for (let c = cols.length -1; c > 0; c--) {
         let diff = cols[c] - cols[c-1];
-        // check if column difference is 1
+        // check if column differnce is 1
         if (diff === 1) continue;
         // if it's greater than 1, insert null the appropriate number of times
         else do {
@@ -145,7 +144,7 @@ const Game = (props) => {
       
       for (let r = rows.length -1; r > 0; r--) {
         let diff = rows[r] - rows[r-1];
-        // check if column difference is 1
+        // check if column differnce is 1
         if (diff === 1) continue;
         // if it's greater than 1, insert null the appropriate number of times
         else do {
@@ -255,6 +254,10 @@ const Game = (props) => {
   }
 
   function placeTile(e) {
+    if (e.dropData.name === 'exchange'){
+      exchangeDrop(e);
+      return;
+    }
     let stateCopy = {...gameState};
     // keep track of where tiles are being placed in a turn
     let newPlaced = {...placedThisTurn};
@@ -312,6 +315,36 @@ const Game = (props) => {
     setGameState(newState);
   }
 
+  function toggleRules() {
+    // just toggle the rules popup
+  }
+
+  function exchangeDrop(e) {
+    console.log(`adding '${e.dragData.letter}' to exchange pile`);
+    // Remove tile from rack
+    let stateCopy = {...gameState};
+    stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
+    setGameState(stateCopy);
+    // and add it to the exchange pile
+    let exCopy = [...toExchange];
+    exCopy.push(e.dragData.letter);
+    setToExchange(exCopy);
+  }
+
+  function exchange() {
+    if (toExchange.length === 0) return;
+    axios.patch('/exchange', {
+      id: name,
+      letters: toExchange
+    }).then((response)=> {
+      console.log('EXCHANGE RESPONSE:::');
+      console.log(response);
+      getState();
+    }).catch((error) => {
+      console.log(error);
+    })
+  }
+
   return <div className="gamePage">
     <div className='texture'></div>
     <div className="header">
@@ -338,43 +371,70 @@ const Game = (props) => {
       </div>
     {/* </DragDropContext> */}
     <div className="gameMenu">
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={() => voteToStart()}>
-        Vote to Start
-      </Button>
-      <Button
+      {/* <Button
         variant='contained'
         color='primary'
         onClick={() => getState()}>
         Game State
-      </Button>
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={() => makeMove()}>
-        Play Move
-      </Button>
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={() => passTurn()}>
-        Pass Turn
-      </Button>
-      <Button
-        variant='contained'
-        color='primary'
-        disabled={gameState.status !== "CHALLENGE"}
-        onClick={() => challengeMove()}>
-        Challenge
-      </Button>
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={() => shuffleRack()}>
-        Shuffle
-      </Button>
+      </Button> */}
+      <div className="menuButtons">
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={() => makeMove()}>
+          Play Move
+        </Button>
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={() => passTurn()}>
+          Pass Turn
+        </Button>
+        <Button
+          variant='contained'
+          color='primary'
+          disabled={gameState.status !== "CHALLENGE"}
+          onClick={() => challengeMove()}>
+          Challenge
+        </Button>
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={() => shuffleRack()}>
+          Shuffle Rack
+        </Button>
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={() => voteToStart()}>
+          Vote to Start
+        </Button>
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={() => toggleRules()}>
+          Rules
+        </Button>
+      </div>
+      <div className="exchange">
+        <DropTarget
+            targetKey="square"
+            onHit={exchangeDrop}
+            dropData={{name: "exchange"}}
+        >
+          <div className="exDropbox">
+            {toExchange.map((char) =>
+              <Tile char={char} drag={false} currTurn={true} onDrop={placeTile}/>
+            )}
+          </div>
+        </DropTarget>
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={() => exchange()}>
+          Exchange Tiles
+        </Button>
+      </div>
     </div>
   </div>
 }
