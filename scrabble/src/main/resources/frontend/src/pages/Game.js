@@ -65,8 +65,6 @@ const Game = (props) => {
   const [gameState, setGameState] = useState(state);
 
   const voteToStart = () => {
-    // console.log(gameState.id);
-    // console.log(name);
     axios.patch('/vote', {
       gameId: gameState.id,
       playerId: name
@@ -321,6 +319,7 @@ const Game = (props) => {
 
   function exchangeDrop(e) {
     console.log(`adding '${e.dragData.letter}' to exchange pile`);
+    if (!gameState.playerMap[name].rack.includes(e.dragData.letter)) return;
     // Remove tile from rack
     let stateCopy = {...gameState};
     stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
@@ -329,6 +328,17 @@ const Game = (props) => {
     let exCopy = [...toExchange];
     exCopy.push(e.dragData.letter);
     setToExchange(exCopy);
+  }
+  
+  function returnFromExchange(e, char) {
+    console.log(char);
+    let exCopy = [...toExchange];
+    delete exCopy[exCopy.indexOf(char)];
+    setToExchange(exCopy);
+
+    let stateCopy = {...gameState};
+    stateCopy.playerMap[name].rack.push(char);
+    setGameState(gameState);
   }
 
   function exchange() {
@@ -339,6 +349,9 @@ const Game = (props) => {
     }).then((response)=> {
       console.log('EXCHANGE RESPONSE:::');
       console.log(response);
+      if (response.status === axios.HttpStatusCode.Ok) {
+        setToExchange([]);
+      }
       getState();
     }).catch((error) => {
       console.log(error);
@@ -350,7 +363,6 @@ const Game = (props) => {
     <div className="header">
       <h1>Lobby {gameState.id.split('-')[0]}</h1>
     </div>
-    {/* <DragDropContext onDragEnd={onDragEnd}> */}
       <div className='game'>
         <Board data={gameState.board} thisTurn={placedThisTurn} tileClick={returnToRack} />
         <div className="players">
@@ -361,15 +373,12 @@ const Game = (props) => {
             </div>
           )}
         </div>
-        {/* <Droppable droppableId="tile-rack" type="tile" isDropDisabled={false}> */}
           <div className="tileRack" style={{gridTemplateColumns: `repeat(${gameState.playerMap[name].rack.length}, 1fr)`}}>
             {gameState.playerMap[name].rack.map( (char) =>
               <Tile char={char} drag={true} onDrop={placeTile}/>
             )}
           </div>
-        {/* </Droppable> */}
       </div>
-    {/* </DragDropContext> */}
     <div className="gameMenu">
       {/* <Button
         variant='contained'
@@ -424,7 +433,7 @@ const Game = (props) => {
         >
           <div className="exDropbox">
             {toExchange.map((char) =>
-              <Tile char={char} drag={false} currTurn={true} onDrop={placeTile}/>
+              <Tile char={char} drag={true} onDrop={placeTile} inExchange={true} onClick={(e) => returnFromExchange(e, char)}/>
             )}
           </div>
         </DropTarget>

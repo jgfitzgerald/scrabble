@@ -5,7 +5,7 @@
     height: 100vh;
     display: grid;
     place-items: center;
-    grid-template-columns: 1fr 0.5fr;
+    grid-template-columns: 1fr 0.65fr;
 }
 
 .header {
@@ -97,6 +97,9 @@
 }
 
 .exDropbox {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
     width: 300px;
     padding: 5px;
     min-height: 65px;

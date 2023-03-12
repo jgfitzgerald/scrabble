@@ -52,6 +52,7 @@ const Tile = (props) => {
     };
     const placedStyle = {
         width: '100%',
+        height: '100%',
         fontSize: '65%',
         cursor: 'pointer'
     };
@@ -71,7 +72,7 @@ const Tile = (props) => {
             dragData={{letter: char}}
             onDrop={props.onDrop}
             render= {() => {
-                return <div style={{...tyleStyle, ...dragStyle}}>
+                return <div style={{...tyleStyle, ...dragStyle}} onClick={props.inExchange ? props.onClick : () => {}}>
                     <h1>{char.toUpperCase()}</h1>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>
