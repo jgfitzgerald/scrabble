@@ -1,6 +1,7 @@
 import './Game.css';
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import Board from '../components/board.js';
@@ -60,6 +61,9 @@ const Game = (props) => {
   const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
   const [toExchange, setToExchange] = useState([]);
+  const [enteringBlank, setEnteringBlank] = useState(false);
+  const [blanks, setBlanks] = useState([]);
+  const [inputLetter, setInputLetter] = useState('');
 
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
@@ -125,7 +129,7 @@ const Game = (props) => {
       
       for (let c = cols.length -1; c > 0; c--) {
         let diff = cols[c] - cols[c-1];
-        // check if column differnce is 1
+        // check if column difference is 1
         if (diff === 1) continue;
         // if it's greater than 1, insert null the appropriate number of times
         else do {
@@ -176,9 +180,9 @@ const Game = (props) => {
       console.log('MOVE RESPONSE:::');
       console.log(response);
       if (response.status === axios.HttpStatusCode.Ok) {
-        // empty placedThisTurn
+        // empty placedThisTurn and blanks
         updatePlaced({});
-        // probably something else...
+        setBlanks([]);
       }
     }).catch((error) => {
       console.log(error);
@@ -256,17 +260,27 @@ const Game = (props) => {
       exchangeDrop(e);
       return;
     }
+    let isBlank = false;
+    if (e.dragData.letter === ' ') {
+      setEnteringBlank(true);
+      let blanksCopy = [...blanks];
+      blanksCopy.push(e.dragData.name);
+      isBlank = true;
+    }
+
+    while (enteringBlank) {}
+
     let stateCopy = {...gameState};
     // keep track of where tiles are being placed in a turn
     let newPlaced = {...placedThisTurn};
-    newPlaced[e.dropData.name] = e.dragData.letter;
+    newPlaced[e.dropData.name] = isBlank ? inputLetter : e.dragData.letter;
     updatePlaced(newPlaced);
     // console.log(placedThisTurn);
     // remove tile from rack
     stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
     // place tile on board
     let coords = e.dropData.name.split('/');
-    stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = e.dragData.letter;
+    stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = isBlank ? inputLetter : e.dragData.letter;
     // save new state
     setGameState(stateCopy);
     // console.log('stateCopy: ', stateCopy);
@@ -292,7 +306,13 @@ const Game = (props) => {
     coords = coords.split('/');
     stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = "\u0000";
     // add tile to rack
-    stateCopy.playerMap[name].rack.push(char);
+    if (blanks.includes(coords)) {
+      stateCopy.playerMap[name].rack.push(' ');
+      let blanksCopy = [...blanks];
+      delete blanksCopy[coords];
+    } else {
+      stateCopy.playerMap[name].rack.push(char);
+    }
     // save new state
     setGameState(stateCopy);
     // console.log('stateCopy: ', stateCopy);
@@ -357,35 +377,48 @@ const Game = (props) => {
       console.log(error);
     })
   }
+  
+  const handleKey = (e) => {
+    if (e.keyCode === 13 && inputLetter.length === 1) setEnteringBlank(false);
+  }
 
   return <div className="gamePage">
     <div className='texture'></div>
     <div className="header">
       <h1>Lobby {gameState.id.split('-')[0]}</h1>
     </div>
-      <div className='game'>
-        <Board data={gameState.board} thisTurn={placedThisTurn} tileClick={returnToRack} />
-        <div className="players">
-          {Object.entries(gameState.playerMap).map( ([key, value]) =>
-            <div className={"namePlate" + ((Object.keys(currPlayer).length !== 0 && currPlayer.id === key) ? " playing" : "")}>
-              <p>{key}</p>
-              <p>({value.totalScore} points)</p>
-            </div>
+    {enteringBlank ? <div className="blankPopup">
+      <h2>Enter the letter you would like to play:</h2>
+      <TextField
+        className='userInput'
+        id='filled-basic'
+        variant='filled'
+        onChange={(event) => setInputLetter(event.target.value)}
+        onKeyUp={handleKey}
+      />
+      <Button
+        variant='contained'
+        onClick={() => {if (inputLetter.length === 1) setEnteringBlank(false)}}>
+        Enter
+      </Button>
+    </div> : <></>}
+    <div className='game'>
+      <Board data={gameState.board} thisTurn={placedThisTurn} tileClick={returnToRack} />
+      <div className="players">
+        {Object.entries(gameState.playerMap).map( ([key, value]) =>
+          <div className={"namePlate" + ((Object.keys(currPlayer).length !== 0 && currPlayer.id === key) ? " playing" : "")}>
+            <p>{key}</p>
+            <p>({value.totalScore} points)</p>
+          </div>
+        )}
+      </div>
+        <div className="tileRack" style={{gridTemplateColumns: `repeat(${gameState.playerMap[name].rack.length}, 1fr)`}}>
+          {gameState.playerMap[name].rack.map( (char) =>
+            <Tile char={char} drag={true} onDrop={placeTile}/>
           )}
         </div>
-          <div className="tileRack" style={{gridTemplateColumns: `repeat(${gameState.playerMap[name].rack.length}, 1fr)`}}>
-            {gameState.playerMap[name].rack.map( (char) =>
-              <Tile char={char} drag={true} onDrop={placeTile}/>
-            )}
-          </div>
-      </div>
+    </div>
     <div className="gameMenu">
-      {/* <Button
-        variant='contained'
-        color='primary'
-        onClick={() => getState()}>
-        Game State
-      </Button> */}
       <div className="menuButtons">
         <Button
           variant='contained'

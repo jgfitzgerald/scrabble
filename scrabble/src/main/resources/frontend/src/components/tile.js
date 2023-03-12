@@ -73,7 +73,7 @@ const Tile = (props) => {
             onDrop={props.onDrop}
             render= {() => {
                 return <div style={{...tyleStyle, ...dragStyle}} onClick={props.inExchange ? props.onClick : () => {}}>
-                    <h1>{char.toUpperCase()}</h1>
+                    <h2>{char.toUpperCase()}</h2>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>
             }}
@@ -88,14 +88,14 @@ const Tile = (props) => {
                     style={{...tyleStyle, ...placedStyle}}
                     onClick={props.onClick}
                 >
-                    <h1>{char.toUpperCase()}</h1>
+                    <h2>{char.toUpperCase()}</h2>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>
             }}
         />
     } else {
         return <div style={{...tyleStyle, ...placedStyle, ...{cursor: 'default'}}}>
-            <h1>{char.toUpperCase()}</h1>
+            <h2>{char.toUpperCase()}</h2>
             <p style={valueStyle}>{values[char]}</p>
         </div>
     }
