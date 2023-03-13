@@ -51,8 +51,8 @@ const Board = ({data, thisTurn, tileClick}) => {
     ];
 
     function dropped(e) {
-        console.log(e);
-        console.log('Dropped!!!');
+        // console.log(e);
+        // console.log('Dropped!!!');
     }
 
     return (

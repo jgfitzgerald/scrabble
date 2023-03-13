@@ -28,8 +28,8 @@ const Game = (props) => {
             // console.log(response);
             if (response.status === axios.HttpStatusCode.Ok) {
               let data = response.data;
-              console.log('curr player:::');
-              console.log(data);
+              // console.log('curr player:::');
+              // console.log(data);
               setCurrPlayer(data);
               // console.log('PLAYERS:::');
               // console.log(data.players);
@@ -61,7 +61,9 @@ const Game = (props) => {
   const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
   const [toExchange, setToExchange] = useState([]);
-  const [enteringBlank, setEnteringBlank] = useState(false);
+  // const [enteringBlank, setEnteringBlank] = useState(false);
+  const [entering, setEntering] = useState();
+  console.log(entering);
   const [blanks, setBlanks] = useState([]);
   const [inputLetter, setInputLetter] = useState('');
 
@@ -177,8 +179,8 @@ const Game = (props) => {
       isHorizontal: placement['isHorizontal'], // bool
       blankIndexes: blankIndices // List<Integer>
     }).then((response)=> {
-      console.log('MOVE RESPONSE:::');
-      console.log(response);
+      // console.log('MOVE RESPONSE:::');
+      // console.log(response);
       if (response.status === axios.HttpStatusCode.Ok) {
         // empty placedThisTurn and blanks
         updatePlaced({});
@@ -237,6 +239,7 @@ const Game = (props) => {
     }).then((response)=> {
       console.log('PASS RESPONSE:::');
       console.log(response);
+      setToExchange([]);
     }).catch((error) => {
       console.log(error);
     })
@@ -255,20 +258,30 @@ const Game = (props) => {
     })
   }
 
-  function placeTile(e) {
+  const enterLetter = new Promise(function(resolve, reject) {
+    setTimeout(() => {
+      console.log(entering);
+      if (!entering) resolve();
+    }, 500);
+  });
+
+  async function placeTile(e){
+    setEntering(false);
     if (e.dropData.name === 'exchange'){
       exchangeDrop(e);
       return;
     }
     let isBlank = false;
-    if (e.dragData.letter === ' ') {
-      setEnteringBlank(true);
+    if (e.dragData.letter === " ") {
+      console.log("is blank...");
+      setEntering(true);
       let blanksCopy = [...blanks];
       blanksCopy.push(e.dragData.name);
+      setBlanks(blanksCopy);
       isBlank = true;
+      console.log("Blanks: ", blanks);
+      await enterLetter;
     }
-
-    while (enteringBlank) {}
 
     let stateCopy = {...gameState};
     // keep track of where tiles are being placed in a turn
@@ -309,7 +322,9 @@ const Game = (props) => {
     if (blanks.includes(coords)) {
       stateCopy.playerMap[name].rack.push(' ');
       let blanksCopy = [...blanks];
-      delete blanksCopy[coords];
+      blanksCopy.splice(blanksCopy.indexOf(coords), 1);
+      setBlanks(blanksCopy);
+      console.log("Blanks: ", blanks);
     } else {
       stateCopy.playerMap[name].rack.push(char);
     }
@@ -347,18 +362,21 @@ const Game = (props) => {
     // and add it to the exchange pile
     let exCopy = [...toExchange];
     exCopy.push(e.dragData.letter);
+    console.log("new exchange list after place: ", exCopy);
     setToExchange(exCopy);
   }
   
   function returnFromExchange(e, char) {
     console.log(char);
     let exCopy = [...toExchange];
-    delete exCopy[exCopy.indexOf(char)];
+    exCopy.splice(exCopy.indexOf(char), 1);
+    console.log("new exchange list after return: ", exCopy);
     setToExchange(exCopy);
 
     let stateCopy = {...gameState};
     stateCopy.playerMap[name].rack.push(char);
     setGameState(gameState);
+    console.log(gameState);
   }
 
   function exchange() {
@@ -379,7 +397,10 @@ const Game = (props) => {
   }
   
   const handleKey = (e) => {
-    if (e.keyCode === 13 && inputLetter.length === 1) setEnteringBlank(false);
+    if (e.keyCode === 13 && inputLetter.length === 1) {
+      // setEnteringBlank(false);
+      setEntering(false);
+    }
   }
 
   return <div className="gamePage">
@@ -387,18 +408,24 @@ const Game = (props) => {
     <div className="header">
       <h1>Lobby {gameState.id.split('-')[0]}</h1>
     </div>
-    {enteringBlank ? <div className="blankPopup">
+    {entering ? <div className="blankPopup">
       <h2>Enter the letter you would like to play:</h2>
       <TextField
-        className='userInput'
+        className='letterInput'
         id='filled-basic'
         variant='filled'
+        // color='light'
         onChange={(event) => setInputLetter(event.target.value)}
         onKeyUp={handleKey}
       />
       <Button
         variant='contained'
-        onClick={() => {if (inputLetter.length === 1) setEnteringBlank(false)}}>
+        onClick={() => {
+          if (inputLetter.length === 1) {
+            // setEnteringBlank(false);
+            setEntering(false);
+          }
+        }}>
         Enter
       </Button>
     </div> : <></>}
@@ -466,7 +493,7 @@ const Game = (props) => {
         >
           <div className="exDropbox">
             {toExchange.map((char) =>
-              <Tile char={char} drag={true} onDrop={placeTile} inExchange={true} onClick={(e) => returnFromExchange(e, char)}/>
+              <Tile char={char} drag={false} inExchange={true} onClick={(e) => returnFromExchange(e, char)}/>
             )}
           </div>
         </DropTarget>

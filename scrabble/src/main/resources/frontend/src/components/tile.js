@@ -66,13 +66,21 @@ const Tile = (props) => {
         right: 3,
     };
 
-    if (draggable) {
+    if (props.inExchange) {
+        return <div
+            style={{...tyleStyle, ...dragStyle}}
+            onClick={props.onClick}
+            >
+                <h2>{char.toUpperCase()}</h2>
+                <p style={valueStyle}>{values[char]}</p>
+        </div>
+    } else if (draggable) {
         return <DragDropContainer
             targetKey="square"
             dragData={{letter: char}}
             onDrop={props.onDrop}
             render= {() => {
-                return <div style={{...tyleStyle, ...dragStyle}} onClick={props.inExchange ? props.onClick : () => {}}>
+                return <div style={{...tyleStyle, ...dragStyle}}>
                     <h2>{char.toUpperCase()}</h2>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>
