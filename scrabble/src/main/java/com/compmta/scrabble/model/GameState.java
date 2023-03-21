@@ -1,15 +1,15 @@
 package com.compmta.scrabble.model;
 
+import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.DTO.WordInfo;
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 import static com.compmta.scrabble.model.GameStatus.PENDING;
 
@@ -25,6 +25,15 @@ public class GameState {
     private Board board;
     public static Dictionary dictionary;
 
+    // Turn instance variables
+    private PlayerInfo currPlayer;
+    private TurnInfo currentTurn;
+    private List<WordInfo> words;
+    private int score;
+    private boolean notInitial;
+    private ArrayList<String> challengers;
+    private Thread turnThread;
+    private CountDownLatch latch;
     private static final int RACK_SIZE = 7;
 
     public GameState() {
@@ -125,6 +134,7 @@ public class GameState {
                 for (char c : p.getRack()) {
                     p.updateScore(-1 * Letter.map.get(c).getBaseScore());
                     scoreReduce += Letter.map.get(c).getBaseScore();
+                    System.out.print("reducing score");
                 }
             }
         }
