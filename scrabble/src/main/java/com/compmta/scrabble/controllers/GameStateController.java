@@ -85,6 +85,9 @@ public class GameStateController {
                 this.setUpGame(gameId);
             }
         }
+        if (gameDatabase.get(gameId).getStatus() == IN_PROGRESS && gameDatabase.get(gameId).checkEndConditions()) {
+            gameDatabase.get(gameId).endGame();
+        }
     }
 
 }
