@@ -68,7 +68,7 @@ const Tile = (props) => {
 
     if (props.inExchange) {
         return <div
-            style={{...tyleStyle, ...dragStyle}}
+            style={{...tileStyle, ...dragStyle}}
             onClick={props.onClick}
             >
                 <h2>{char.toUpperCase()}</h2>
@@ -80,7 +80,7 @@ const Tile = (props) => {
             dragData={{letter: char}}
             onDrop={props.onDrop}
             render= {() => {
-                return <div style={{...tileStyle, ...dragStyle}} onClick={props.inExchange ? props.onClick : () => {}}>
+                return <div style={{...tileStyle, ...dragStyle}}>
                     <h2>{char.toUpperCase()}</h2>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>

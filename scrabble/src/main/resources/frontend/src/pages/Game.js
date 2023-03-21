@@ -414,7 +414,6 @@ const Game = (props) => {
         className='letterInput'
         id='filled-basic'
         variant='filled'
-        // color='light'
         onChange={(event) => setInputLetter(event.target.value)}
         onKeyUp={handleKey}
       />
