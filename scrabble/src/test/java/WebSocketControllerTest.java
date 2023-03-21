@@ -1,3 +1,4 @@
+/* Integration Testing */
 package com.compmta.scrabble.controllers;
 
 import com.compmta.scrabble.controllers.DTO.*;
