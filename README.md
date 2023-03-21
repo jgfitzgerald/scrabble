@@ -61,6 +61,16 @@ Fetches the game database, for testing purposes.
 #### ```localhost:8080/newGame```
 Creates a new Game State object.
 
+Response Example
+```json
+{
+    "gameId": "ddeec294-d294-4074-8b5c-d6b88fcba007",
+    "status": "PENDING",
+    "board": null,
+    "players": {}
+}
+```
+
 ### /join
 #### ```localhost:8080/join```
 Allows a player to join a game.
