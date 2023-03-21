@@ -1,0 +1,33 @@
+
+.lobbyPage {
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.lobbyPlayerRow {
+    padding: 0 20%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.lobbyCard {
+    width: 200px;
+    aspect-ratio: 1;
+
+    color: var(--bg-clr);
+    background-color: var(--random-red);
+    background-image: url('../assets/wood.jpg');
+    background-size: 100%;
+    background-repeat: no-repeat;
+    border-radius: 20px;
+
+    box-shadow: 0px 0px 20px 4px rgba(0, 0, 0, 0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
+    -webkit-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;
+    -moz-box-shadow: 0px 0px 20px 4px rgba(0,0,0,0.50), 0px 0px 14px -2px rgba(0,0,0,0.50) inset;  
+}

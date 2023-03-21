@@ -21,7 +21,7 @@ function Home() {
           console.log("JOIN REPONSE:::");
           console.log(response);
           sessionStorage.setItem('name', nickname);
-          navigate('/play', {replace: true, state: response.data});
+          navigate('/lobby', {replace: true, state: response.data});
         }
       }).catch((error) => {
         console.log(error);

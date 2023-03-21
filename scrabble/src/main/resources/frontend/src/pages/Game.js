@@ -70,7 +70,7 @@ const Game = (props) => {
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
 
-  const voteToStart = () => {
+  const voteToEnd = () => {
     axios.patch('/vote', {
       gameId: gameState.id,
       playerId: name
@@ -474,8 +474,8 @@ const Game = (props) => {
         <Button
           variant='contained'
           color='primary'
-          onClick={() => voteToStart()}>
-          Vote to Start
+          onClick={() => voteToEnd()}>
+          Vote to End
         </Button>
         <Button
           variant='contained'
