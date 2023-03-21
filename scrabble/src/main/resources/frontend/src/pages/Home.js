@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
-import { useSpring, useTransition, animated } from '@react-spring/web'
 import axios from 'axios';
 
 function Home() {
@@ -21,7 +20,7 @@ function Home() {
         if (response.status === axios.HttpStatusCode.Ok) {
           console.log("JOIN REPONSE:::");
           console.log(response);
-          localStorage.setItem('name', nickname);
+          sessionStorage.setItem('name', nickname);
           navigate('/play', {replace: true, state: response.data});
         }
       }).catch((error) => {

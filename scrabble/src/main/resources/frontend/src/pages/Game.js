@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 import axios from 'axios';
 import Board from '../components/board.js';
 import Tile from '../components/tile.js';
-import Stomp, {Client} from '@stomp/stompjs';
+import { Client } from '@stomp/stompjs';
 import { DropTarget } from 'react-drag-drop-container';
 
 
@@ -57,7 +57,7 @@ const Game = (props) => {
     client.activate();
   }, []);
 
-  const name = localStorage.getItem('name');
+  const name = sessionStorage.getItem('name');
   const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
   const [toExchange, setToExchange] = useState([]);
@@ -146,7 +146,7 @@ const Game = (props) => {
       
       for (let r = rows.length -1; r > 0; r--) {
         let diff = rows[r] - rows[r-1];
-        // check if column differnce is 1
+        // check if column difference is 1
         if (diff === 1) continue;
         // if it's greater than 1, insert null the appropriate number of times
         else do {

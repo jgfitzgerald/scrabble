@@ -39,7 +39,7 @@ const Tile = (props) => {
         '0': ''
     };
 
-    const tyleStyle = {
+    const tileStyle = {
         position: 'relative',
         aspectRatio: 1,
         backgroundColor: 'white',
@@ -72,7 +72,7 @@ const Tile = (props) => {
             dragData={{letter: char}}
             onDrop={props.onDrop}
             render= {() => {
-                return <div style={{...tyleStyle, ...dragStyle}} onClick={props.inExchange ? props.onClick : () => {}}>
+                return <div style={{...tileStyle, ...dragStyle}} onClick={props.inExchange ? props.onClick : () => {}}>
                     <h2>{char.toUpperCase()}</h2>
                     <p style={valueStyle}>{values[char]}</p>
                 </div>
@@ -85,7 +85,7 @@ const Tile = (props) => {
             onDrop={props.onDrop}
             render= {() => {
                 return <div
-                    style={{...tyleStyle, ...placedStyle}}
+                    style={{...tileStyle, ...placedStyle}}
                     onClick={props.onClick}
                 >
                     <h2>{char.toUpperCase()}</h2>
@@ -94,7 +94,7 @@ const Tile = (props) => {
             }}
         />
     } else {
-        return <div style={{...tyleStyle, ...placedStyle, ...{cursor: 'default'}}}>
+        return <div style={{...tileStyle, ...placedStyle, ...{cursor: 'default'}}}>
             <h2>{char.toUpperCase()}</h2>
             <p style={valueStyle}>{values[char]}</p>
         </div>
