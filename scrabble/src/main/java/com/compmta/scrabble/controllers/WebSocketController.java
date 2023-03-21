@@ -51,6 +51,7 @@ public class WebSocketController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         game.joinGame(joinInfo.gameId(), joinInfo.playerId());
+        sendGameState(joinInfo.gameId());
         return ResponseEntity.ok(new GameStateInfo(joinInfo.gameId(), game.getGameDatabase().get(joinInfo.gameId()).getStatus(), game.getGameDatabase().get(joinInfo.gameId()).getBoard(), game.getGameDatabase().get(joinInfo.gameId()).getPlayerMap()));
     }
 
@@ -100,9 +101,9 @@ public class WebSocketController {
         try{
             log.info(String.format("Received request from %s to place letters: " + Arrays.toString(turnInfo.word()), turnInfo.playerId()));
             turnController.takeTurn(turnInfo);
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameDatabase().get(turnInfo.gameId()));
+            sendGameState(turnInfo.gameId());
             turnController.challengePhase(turnInfo);
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameDatabase().get(turnInfo.gameId()));
+            sendGameState(turnInfo.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -128,8 +129,7 @@ public class WebSocketController {
         try{
             log.info(String.format("Received request to pass %s's turn.",id));
             turnController.passTurn(id.gameId(), id.playerId());
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameDatabase().get(id.gameId()));
-
+            sendGameState(id.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -159,8 +159,7 @@ public class WebSocketController {
         try{
             log.info(String.format("Received request from %s to exchange letters: " + Arrays.toString(toExchange.letters()), toExchange.playerId()));
             turnController.exchangeLetters(toExchange.gameId(), toExchange.playerId(), toExchange.letters());
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameDatabase().get(toExchange.gameId()));
-
+            sendGameState(toExchange.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -191,7 +190,7 @@ public class WebSocketController {
         try{
             log.info(String.format("Received vote request from %s.", vote.playerId()));
             game.vote(vote.gameId(), vote.playerId());
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameDatabase().get(vote.gameId()));
+            sendGameState(vote.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -218,7 +217,7 @@ public class WebSocketController {
         try {
             log.info(String.format("Received request from %s to challenge turn.", challengerInfo.challengerId()));
             turnController.challengeWord(challengerInfo);
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameDatabase().get(challengerInfo.gameId()));
+            sendGameState(challengerInfo.gameId());
         } catch (Exception e) {
             log.info("Error: " + e.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -229,5 +228,10 @@ public class WebSocketController {
     @GetMapping("/getDatabase")
     public ResponseEntity<Map<String, GameState>> getGameDatabase() {
         return ResponseEntity.ok(game.getGameDatabase());
+    }
+
+    private void sendGameState(String gameStateId){
+        log.info("Websocket broadcasting game to lobby ({})", gameStateId);
+        simpMessagingTemplate.convertAndSend("/game/gameState/" + gameStateId, game.getGameDatabase().get(gameStateId));
     }
 }
