@@ -2,6 +2,8 @@ package com.compmta.scrabble.model;
 
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.controllers.DTO.WordInfo;
+import com.compmta.scrabble.controllers.GameStateController;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,6 +14,16 @@ public class BoardTest {
     private Board board = new Board();
     char DEFAULT = board.DEFAULT;
     private Square[][] boardArr = board.getBoard();
+    private GameStateController gameStateController;
+    private GameState gameState;
+    private String gameID;
+
+    @BeforeEach
+    void setUpGame(){
+        gameStateController = new GameStateController();
+        gameState = gameStateController.newGame();
+        gameID = gameState.getId();
+    }
     @Test
     void testGetSquare(){
         int row = 1;
@@ -30,7 +42,7 @@ public class BoardTest {
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
         // Create a new TurnInfo object to remove the word
-        TurnInfo turn = new TurnInfo("player1", testChar, 7,7, true, blankIndexes);
+        TurnInfo turn = new TurnInfo(gameID,"player1", testChar, 7,7, true, blankIndexes);
 
         // Remove the word from the board
         board.removeWord(turn);
@@ -77,7 +89,7 @@ public class BoardTest {
         char[] testChar = {'t', 'e', 's', 't'};
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 7,7, true, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 7,7, true, blankIndexes);
         Turn turn = new Turn(turnInfo);
         board.applyTurn(turn);
 
@@ -93,10 +105,10 @@ public class BoardTest {
         char[] testChar = {'t', 'e', 's', 't'};
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo1 = new TurnInfo("player1", testChar, 7,7, true, blankIndexes);
+        TurnInfo turnInfo1 = new TurnInfo(gameID,"player1", testChar, 7,7, true, blankIndexes);
         assertTrue(board.validateInitialMove(turnInfo1));
 
-        TurnInfo turnInfo2 = new TurnInfo("player1", testChar, 0,0, true, blankIndexes);
+        TurnInfo turnInfo2 = new TurnInfo(gameID,"player1", testChar, 0,0, true, blankIndexes);
         assertFalse(board.validateInitialMove(turnInfo2));
     }
 
@@ -113,7 +125,7 @@ public class BoardTest {
         board.getSquare(10, 7).setLetter('e');
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 8,7, false, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 8,7, false, blankIndexes);
         assertTrue(board.validateMove(turnInfo));
     }
     @Test
@@ -121,7 +133,7 @@ public class BoardTest {
         char[] testChar = {'t', 'e', 's', 't'};
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 7,7, true, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 7,7, true, blankIndexes);
         assertFalse(board.validateMove(turnInfo));
 
     }
@@ -131,7 +143,7 @@ public class BoardTest {
         char[] testChar = {'p','h','a','m','e','r','c','i','s','t'};
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 7,7, true, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 7,7, true, blankIndexes);
         assertFalse(board.validateMove(turnInfo));
 
     }
@@ -149,7 +161,7 @@ public class BoardTest {
         board.getSquare(10, 7).setLetter('e');
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 8,7, false, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 8,7, false, blankIndexes);
         assertTrue(board.scoreMove(turnInfo)>0);
     }
 
@@ -176,7 +188,7 @@ public class BoardTest {
         board.getSquare(10, 7).setLetter('e');
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 8,7, false, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 8,7, false, blankIndexes);
         ArrayList<WordInfo> words = board.detectWords(turnInfo);
         String expectedWord = "take";
         String detectedWord = words.get(0).word();
@@ -196,7 +208,7 @@ public class BoardTest {
         board.getSquare(10, 7).setLetter('e');
         List<Integer> blankIndexes = new ArrayList<Integer>();
 
-        TurnInfo turnInfo = new TurnInfo("player1", testChar, 2,8, false, blankIndexes);
+        TurnInfo turnInfo = new TurnInfo(gameID,"player1", testChar, 2,8, false, blankIndexes);
         ArrayList<WordInfo> words = board.detectWords(turnInfo);
         String expectedWord = DEFAULT+""+DEFAULT+""+DEFAULT;
         String detectedWord = words.get(0).word();

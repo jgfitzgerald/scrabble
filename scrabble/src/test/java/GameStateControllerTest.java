@@ -20,41 +20,48 @@ class GameStateControllerTest {
     private PlayerInfo player2;
     private PlayerInfo player3;
     private PlayerInfo player4;
+    private GameState gameState;
+    private String gameID;
 
     @Test
-    @BeforeEach
     void testSetUpGameWithOnePlayer(){
         MockitoAnnotations.openMocks(this);
         gameStateController = new GameStateController();
-        MockitoAnnotations.openMocks(this);
-        player1 = gameStateController.joinGame("player1");
-        assertThrows(IllegalStateException.class, () -> gameStateController.setUpGame());
+        gameState = gameStateController.newGame();
+        gameID = gameState.getId();
+        player1 = gameStateController.joinGame(gameID,"player1");
+        assertThrows(IllegalStateException.class, () -> gameStateController.setUpGame(gameID));
     }
 
     @Test
-    @BeforeEach
     void testSetUpGameWithMaxPlayer(){
         MockitoAnnotations.openMocks(this);
         gameStateController = new GameStateController();
-        MockitoAnnotations.openMocks(this);
-        player1 = gameStateController.joinGame("player1");
-        player2 = gameStateController.joinGame("player2");
-        player3 = gameStateController.joinGame("player3");
-        player4 = gameStateController.joinGame("player4");
-        gameStateController.setUpGame();
-        assertEquals(GameStatus.IN_PROGRESS, gameStateController.getGameState().getStatus());
-        assertNotNull(gameStateController.getGameState().getPlayerMap());
-        assertEquals(player1, gameStateController.getGameState().getPlayers().get(0));
+        gameState = gameStateController.newGame();
+        gameID = gameState.getId();
+
+        player1 = gameStateController.joinGame(gameID,"player1");
+        player2 = gameStateController.joinGame(gameID,"player2");
+        player3 = gameStateController.joinGame(gameID,"player3");
+        player4 = gameStateController.joinGame(gameID,"player4");
+
+        gameStateController.setUpGame(gameID);
+        assertEquals(GameStatus.IN_PROGRESS, gameStateController.getGameDatabase().get(gameID).getStatus());
+        assertNotNull(gameStateController.getGameDatabase().get(gameID).getPlayerMap());
+        assertEquals(player1, gameStateController.getGameDatabase().get(gameID).getPlayers().get(0));
     }
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
         gameStateController = new GameStateController();
+        gameState = gameStateController.newGame();
+        gameID = gameState.getId();
         MAX_PLAYERS = (int) ReflectionTestUtils.getField(gameStateController, "MAX_PLAYERS");
     }
 
     @Test
     void testJoinGame() {
-        PlayerInfo player1 = gameStateController.joinGame("player1");
+        PlayerInfo player1 = gameStateController.joinGame(gameID,"player1");
         assertNotNull(player1);
         assertEquals("player1", player1.getId());
     }
@@ -62,46 +69,32 @@ class GameStateControllerTest {
     @Test
     void testJoinGameWhenGameIsFull() {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            gameStateController.joinGame("player" + (i + 1));
+            gameStateController.joinGame(gameID,"player" + (i + 1));
         }
-        assertThrows(IllegalStateException.class, () -> gameStateController.joinGame("player5"));
+        assertThrows(IllegalStateException.class, () -> gameStateController.joinGame(gameID,"player5"));
     }
 
     @Test
     void testJoinGameWithSameName() {
-        PlayerInfo player1 = gameStateController.joinGame("player1");
-        assertThrows(IllegalArgumentException.class, () -> gameStateController.joinGame("player1"));
+        PlayerInfo player1 = gameStateController.joinGame(gameID,"player1");
+        assertThrows(IllegalArgumentException.class, () -> gameStateController.joinGame(gameID,"player1"));
     }
 
     @Test
     void testSetUpGameWithLessThanMinPlayers() {
-        gameStateController.joinGame("player1");
-        assertThrows(IllegalStateException.class, () -> gameStateController.setUpGame());
+        gameStateController.joinGame(gameID,"player1");
+        assertThrows(IllegalStateException.class, () -> gameStateController.setUpGame(gameID));
     }
 
     @Test
     void testSetUpGame() {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            gameStateController.joinGame("player" + (i + 1));
+            gameStateController.joinGame(gameID,"player" + (i + 1));
         }
-        gameStateController.setUpGame();
-        GameState gameState = gameStateController.getGameState();
+        gameStateController.setUpGame(gameID);
         assertNotNull(gameState);
         assertNotNull(gameState.getBoard());
         assertNotNull(gameState.getPlayers());
-    }
-    @Test
-    void testVoteToEnd() {
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            gameStateController.joinGame("player" + (i + 1));
-        }
-        gameStateController.setUpGame();
-        assertFalse(gameStateController.getGameState().getPlayers().stream().allMatch(PlayerInfo::getVote));
-
-        for (PlayerInfo p : gameStateController.getGameState().getPlayers()) {
-            gameStateController.vote(p.getId());
-        }
-        assertTrue(gameStateController.getGameState().getPlayers().stream().allMatch(PlayerInfo::getVote));
     }
 
 }

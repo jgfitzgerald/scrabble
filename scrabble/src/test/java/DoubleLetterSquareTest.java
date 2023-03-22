@@ -35,15 +35,11 @@ public class DoubleLetterSquareTest {
 
     @Test
     void testEffectWithInvalidIndex(){
-        String word = "test";
-        int expectedFinalScore = 0;
-        int actualFinalScore = doubleLetterSquare.effect(word, 10, 10);
-        assertEquals(expectedFinalScore, actualFinalScore);
+        final String word1 = "test";
+        assertThrows(IllegalArgumentException.class, () -> doubleLetterSquare.effect(word1, 10, 10));
 
-        word = "scrabble";
-        expectedFinalScore = 0;
-        actualFinalScore = doubleLetterSquare.effect(word, 10, 10);
-        assertEquals(expectedFinalScore, actualFinalScore);
+        final String word2 = "scrabble";
+        assertThrows(IllegalArgumentException.class, () -> doubleLetterSquare.effect(word2, 10, 10));
 
     }
 }

@@ -3,6 +3,7 @@ import com.compmta.scrabble.model.Square;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RegularSquareTest {
     private Square regularSquare = new RegularSquare();
@@ -22,15 +23,11 @@ public class RegularSquareTest {
 
     @Test
     void testEffectWithInvalidIndex(){
-        String word = "test";
-        int expectedFinalScore = 0;
-        int actualFinalScore = regularSquare.effect(word, 10, 10);
-        assertEquals(expectedFinalScore, actualFinalScore);
+        final String word1 = "test";
+        assertThrows(IllegalArgumentException.class, () -> regularSquare.effect(word1, 10, 10));
 
-        word = "scrabble";
-        expectedFinalScore = 0;
-        actualFinalScore = regularSquare.effect(word, 10, 10);
-        assertEquals(expectedFinalScore, actualFinalScore);
+        final String word2 = "scrabble";
+        assertThrows(IllegalArgumentException.class, () -> regularSquare.effect(word2, 10, 10));
 
     }
 }
