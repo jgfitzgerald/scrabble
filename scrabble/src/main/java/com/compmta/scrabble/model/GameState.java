@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
+import static com.compmta.scrabble.model.GameStatus.FINISHED;
 import static com.compmta.scrabble.model.GameStatus.PENDING;
 
 @Getter
@@ -145,4 +146,22 @@ public class GameState {
         }
     }
 
+    /**
+     * Ends the game. Sets the status to finished, preventing further requests.
+     * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
+     */
+    public void endGame() {
+        this.setStatus(FINISHED);
+        this.unplayedLetterScores();
+        PlayerInfo currWinner = null;
+        int maxScore = 0;
+        for (PlayerInfo p : this.getPlayers()) {
+            if (p.getTotalScore() > maxScore) {
+                currWinner = p;
+                maxScore = currWinner.getTotalScore();
+            }
+            if (maxScore == 0) this.setCurrPlayer(null);
+            else this.setCurrPlayer(p);
+        }
+    }
 }
