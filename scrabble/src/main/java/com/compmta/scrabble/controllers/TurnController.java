@@ -38,14 +38,13 @@ public class TurnController {
 
     //TODO priority list (in order of highest to lowest): Testing and refactoring
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
+        if (turnInfo == null) { // passed turn
+            return null;
+        }
         String gameId = turnInfo.gameId();
         GameState game = gsController.getGameDatabase().get(gameId);
         if (gsController.getGameDatabase().get(gameId).getStatus() != IN_PROGRESS) {
             throw new IllegalStateException("Cannot place command as game is " + gsController.getGameDatabase().get(gameId).getStatus());
-        }
-        if (turnInfo == null) { // passed turn
-            gsController.getGameDatabase().get(gameId).getTurnLog().add(null);
-            return null;
         }
         if (gsController.getGameDatabase().get(gameId).getPlayerMap().get(turnInfo.playerId()) == null) {
             throw new IllegalArgumentException("This player is not in the game.");
