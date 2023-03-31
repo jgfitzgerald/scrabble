@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,7 +58,6 @@ public class WebSocketController {
      * Fetches the game state
      */
     @GetMapping("/gamestate")
-    @SendTo("/game/gameState")
     public ResponseEntity<GameStateInfo> getGame(@RequestParam String gameId) throws Exception {
         if (game.getGameDatabase().get(gameId) == null) {
             log.info("Error: Game id not found: " + gameId);
@@ -176,7 +174,7 @@ public class WebSocketController {
     @PatchMapping("/vote")
     public ResponseEntity<Void> vote(@RequestBody VoteInfo vote) {
         if (game.getGameDatabase().get(vote.gameId()) == null) {
-            log.info("Invalid request, game not found.");
+            log.info("Invalid request, game not found. ("+vote.gameId()+")");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         if (game.getGameDatabase().get(vote.gameId()).getPlayerMap().get(vote.playerId()) == null) {

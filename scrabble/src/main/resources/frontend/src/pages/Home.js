@@ -10,40 +10,58 @@ function Home() {
 
   let navigate = useNavigate();
   let [nickname, setNickname] = useState();
+  let [gameID, setGameID] = useState();
 
-  const checkNickname = () => {
+  const [popupText, setPopupText] = useState('');
+
+  const joinGame = (gameId) => {
     if (nickname){
       axios.post('/join', {
-        id: nickname,
+        gameId: gameId,
+        playerId: nickname,
       }).then((response) => {
         console.log(response);
         if (response.status === axios.HttpStatusCode.Ok) {
           console.log("JOIN REPONSE:::");
           console.log(response);
           sessionStorage.setItem('name', nickname);
-          navigate('/lobby', {replace: true, state: response.data});
+          navigate('/play', {replace: true, state: response.data});
         }
       }).catch((error) => {
+        console.log("setting popup");
+        showPopup("Something went wrong :(");
         console.log(error);
       });
     }
   }
 
-  const handleKey = (e) => {
-    if (e.keyCode === 13) checkNickname();
+  const checkInput = () => {
+    if (gameID) {
+      joinGame(gameID);
+    } else {
+      axios.post('/newGame',  {
+      }).then((response) => {
+        console.log(response.data);
+        setGameID(response.data.gameId);
+        joinGame(response.data.gameId);
+      }).catch((error) => {
+        console.log("setting popup");
+        showPopup("Something went wrong :(");
+        console.log(error);
+      });
+    }
   }
 
-  useEffect(() => {
-    let name = localStorage.getItem('name');
-    if (name) {
-      setNickname(name);
-      console.log('name: ' + name);
-    }
-    console.log('nickname: ' + nickname);
-  }, []);
+  const showPopup = (text) => {
+    setPopupText(text);
+    setTimeout(setPopupText(''), 5050);
+  }
 
   return (
       <div className='navigator'>
+        <div className={'popUp' + (popupText !== '' ? ' showing' : '')}>
+          <p>{popupText}</p>
+        </div>
         <div className='texture' />
         <div className='loginMenu'>
           <div className='logo'/>
@@ -52,14 +70,20 @@ function Home() {
             id='filled-basic'
             label='Nicholasname'
             variant='filled'
-            defaultValue={nickname}
             onChange={(event) => setNickname(event.target.value)}
-            onKeyUp={handleKey}
           />
+          <TextField
+            className='userInput'
+            id='filled-basic'
+            label='Game ID'
+            variant='filled'
+            onChange={(event) => setGameID(event.target.value)}
+          />
+          <p class="inst">leave game ID blank to create a new game</p>
           <Button
             className='homeMenuBtn'
             variant='contained'
-            onClick={() => checkNickname()}>
+            onClick={() => checkInput()}>
             Enter
           </Button>
         </div>

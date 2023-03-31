@@ -40,7 +40,7 @@ root.render(
       <HashRouter>
         <Routes>
           <Route path='/'         element={<Home/>}     />
-          <Route path='/lobby'    element={<Lobby/>}    />
+          {/* <Route path='/lobby'    element={<Lobby/>}    /> */}
           <Route path='/play'     element={<Game/>}     />
           <Route path='*'         element={<NotFound/>} />
         </Routes>

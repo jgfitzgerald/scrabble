@@ -1,6 +1,5 @@
 import './Lobby.css';
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 
@@ -10,34 +9,39 @@ import axios from 'axios';
 
 const Lobby = (props) => {
 
-    const { state } = useLocation();
-    const [gameState, setGameState] = useState(state);
+  console.log(props.state);
 
-    const voteToStart = () => {
-        axios.patch('/vote', {
-          gameId: gameState.id,
-          playerId: sessionStorage.getItem('name')
-        }).then((response) => {
-          console.log('VOTE RESPONSE:::');
-          console.log(response);
-        }).catch((error) => {
-          console.log(error);
-        });
-    }
+  const voteToStart = () => {
+    axios.patch('/vote', {
+      gameId: props.state.id || props.state.gameId,
+      playerId: sessionStorage.getItem('name')
+    // }).then((response) => {
+    //   console.log('VOTE RESPONSE:::');
+    //   console.log(response);
+    }).catch((error) => {
+      props.popup("Something went wrong :(");
+      console.log(error);
+    });
+  }
 
-    return <div className='lobbyPage'>
-        <div className='lobbyPlayerRow'>
-            <div className='lobbyCard'>
-                <h3>Player Name</h3>
-            </div>
+  return <div className='lobbyPage'>
+  <div className='texture'></div>
+    <div className='lobbyPlayerRow'>
+      {Object.entries(props.state.playerMap).map( ([key, value]) =>
+        <div className='lobbyCard'>
+          <h3>{key}</h3>
+          <p>{value.vote ? "ready" : "waiting"}</p>
         </div>
-        <Button
-          variant='contained'
-          color='primary'
-          onClick={() => voteToStart()}>
-            Vote to Start
-        </Button>
+      )}
     </div>
+    <Button
+      variant='contained'
+      color='primary'
+      disabled={props.state.playerMap[sessionStorage.getItem('name')].vote}
+      onClick={() => voteToStart()}>
+        Vote to Start
+    </Button>
+  </div>
 }
 
 export default Lobby;

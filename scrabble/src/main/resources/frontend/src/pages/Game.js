@@ -8,6 +8,7 @@ import Board from '../components/board.js';
 import Tile from '../components/tile.js';
 import { Client } from '@stomp/stompjs';
 import { DropTarget } from 'react-drag-drop-container';
+import Lobby from './Lobby';
 
 
 const Game = (props) => {
@@ -15,26 +16,23 @@ const Game = (props) => {
   useEffect(() => {
     let onConnected = () => {
       console.log("connected");
-      client.subscribe("/game/gameState", (response) => {
-        // console.log(response);
+      client.subscribe("/game/gameState/"+state.gameId, (response) => {
         if (response.body) {
           let data = JSON.parse(response.body);
-          console.log('DATA:::');
-          console.log(data);
+          // console.log('DATA:::');
+          // console.log(data);
           setGameState(data);
           
-          axios.get('/currPlayer', {
-          }).then((response) => {
-            // console.log(response);
+          axios.get('/currPlayer', { params: {
+            gameId: state.gameId
+          }}).then((response) => {
             if (response.status === axios.HttpStatusCode.Ok) {
               let data = response.data;
-              // console.log('curr player:::');
-              // console.log(data);
               setCurrPlayer(data);
-              // console.log('PLAYERS:::');
-              // console.log(data.players);
             }
           }).catch((error) => {
+            console.log("setting popup");
+            showPopup("Something went wrong :(");
             console.log(error);
           });
 
@@ -61,36 +59,41 @@ const Game = (props) => {
   const [currPlayer, setCurrPlayer] = useState({});
   const [placedThisTurn, updatePlaced] = useState({});
   const [toExchange, setToExchange] = useState([]);
-  // const [enteringBlank, setEnteringBlank] = useState(false);
-  const [entering, setEntering] = useState();
-  console.log(entering);
+  const [entering, setEntering] = useState(false);
   const [blanks, setBlanks] = useState([]);
   const [inputLetter, setInputLetter] = useState('');
 
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
 
+  const [popupText, setPopupText] = useState('');
+
   const voteToEnd = () => {
     axios.patch('/vote', {
-      gameId: gameState.id,
+      gameId: gameState.id ?? gameState.gameId,
       playerId: name
     }).then((response) => {
       console.log('VOTE RESPONSE:::');
       console.log(response);
     }).catch((error) => {
+      console.log("setting popup");
+      showPopup("Something went wrong :(");
       console.log(error);
     });
   }
 
   const getState = () => {
-    axios.get('/gamestate', {
-    }).then((response) => {
+    axios.get('/gamestate', { params: {
+      gameId: gameState.id ?? gameState.gameId
+    }}).then((response) => {
       if (response.status === axios.HttpStatusCode.Ok) {
         let data = response.data;
-        console.log(data);
+        // console.log(data);
         setGameState(data);
       }
     }).catch((error) => {
+      console.log("setting popup");
+      showPopup("Something went wrong :(");
       console.log(error);
     });
   }
@@ -158,10 +161,6 @@ const Game = (props) => {
       }
     }
 
-    console.log('NULLED WORD!!!!!');
-    console.log(word);
-
-
     let blankIndices = Object.values(placedThisTurn).reduce(
       function(total, val, index) {
         if (val === ' ') total.push(index);
@@ -172,7 +171,8 @@ const Game = (props) => {
     // console.log(blankIndices);
 
     axios.post('/move', {
-      id: name.toString(), // string // DONE
+      gameId: gameState.id ?? gameState.gameId,
+      playerId: name.toString(), // string
       word: word, // char[]
       row: parseInt(placement['x']), // int
       column: parseInt(placement['y']), // int
@@ -187,6 +187,8 @@ const Game = (props) => {
         setBlanks([]);
       }
     }).catch((error) => {
+      console.log("setting popup");
+      showPopup("Something went wrong :(");
       console.log(error);
     })
   }
@@ -235,46 +237,52 @@ const Game = (props) => {
 
   const passTurn = () => {
     axios.post('/pass', {
-      id: name
+      gameId: gameState.id ?? gameState.gameId,
+      playerId: name
     }).then((response)=> {
       console.log('PASS RESPONSE:::');
       console.log(response);
       setToExchange([]);
     }).catch((error) => {
+      console.log("setting popup");
+      showPopup("It's not your turn!");
       console.log(error);
     })
   }
 
   const challengeMove = () => {
     axios.post('/challenge', {
-      gameId: gameState.id,
+      gameId: gameState.id ?? gameState.gameId,
       challengerId: name
     }).then((response)=> {
       console.log('CHALLENGE RESPONSE:::');
       console.log(response);
       getState();
     }).catch((error) => {
+      console.log("setting popup");
+      showPopup("Something went wrong :(");
       console.log(error);
     })
   }
 
-  const enterLetter = new Promise(function(resolve, reject) {
-    setTimeout(() => {
-      console.log(entering);
-      if (!entering) resolve();
-    }, 500);
-  });
 
   async function placeTile(e){
-    setEntering(false);
+    
+    setEntering(e.dragData.letter === " ");
+
+    const enterLetter = Promise(function(resolve, reject) {
+      setTimeout(() => {
+        console.log(entering);
+        if (!entering) resolve();
+      }, 5000);
+    });
+
     if (e.dropData.name === 'exchange'){
       exchangeDrop(e);
       return;
     }
     let isBlank = false;
     if (e.dragData.letter === " ") {
-      console.log("is blank...");
-      setEntering(true);
       let blanksCopy = [...blanks];
       blanksCopy.push(e.dragData.name);
       setBlanks(blanksCopy);
@@ -382,7 +390,8 @@ const Game = (props) => {
   function exchange() {
     if (toExchange.length === 0) return;
     axios.patch('/exchange', {
-      id: name,
+      gameId: gameState.id ?? gameState.gameId,
+      playerId: name,
       letters: toExchange
     }).then((response)=> {
       console.log('EXCHANGE RESPONSE:::');
@@ -392,6 +401,8 @@ const Game = (props) => {
       }
       getState();
     }).catch((error) => {
+      console.log("setting popup");
+      showPopup("Something went wrong :(");
       console.log(error);
     })
   }
@@ -403,11 +414,20 @@ const Game = (props) => {
     }
   }
 
+  const showPopup = (text) => {
+    setPopupText(text);
+    setTimeout(setPopupText(''), 5050);
+  }
+
   return <div className="gamePage">
     <div className='texture'></div>
     <div className="header">
-      <h1>Lobby {gameState.id.split('-')[0]}</h1>
+      <h1>Lobby {gameState.id ?? gameState.gameId}</h1>
     </div>
+    <div className={'popUp' + (popupText !== '' ? ' showing' : '')}>
+      <p>{popupText}</p>
+    </div>
+    {gameState.status === 'PENDING' ? <Lobby state={gameState} popup={showPopup}/> : <></>}
     {entering ? <div className="blankPopup">
       <h2>Enter the letter you would like to play:</h2>
       <TextField
