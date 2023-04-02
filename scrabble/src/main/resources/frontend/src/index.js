@@ -7,7 +7,6 @@ import { BrowserRouter as HashRouter, Route, Routes} from "react-router-dom";
 
 import Home from './pages/Home';
 import Game from './pages/Game';
-import Lobby from './pages/Lobby';
 import NotFound from './pages/NotFound';
 
 // https://mui.com/material-ui/customization/default-theme/
@@ -40,7 +39,6 @@ root.render(
       <HashRouter>
         <Routes>
           <Route path='/'         element={<Home/>}     />
-          {/* <Route path='/lobby'    element={<Lobby/>}    /> */}
           <Route path='/play'     element={<Game/>}     />
           <Route path='*'         element={<NotFound/>} />
         </Routes>

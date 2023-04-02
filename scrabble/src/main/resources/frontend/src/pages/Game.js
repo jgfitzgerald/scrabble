@@ -19,8 +19,6 @@ const Game = (props) => {
       client.subscribe("/game/gameState/"+state.gameId, (response) => {
         if (response.body) {
           let data = JSON.parse(response.body);
-          // console.log('DATA:::');
-          // console.log(data);
           setGameState(data);
           
           axios.get('/currPlayer', { params: {
@@ -31,7 +29,6 @@ const Game = (props) => {
               setCurrPlayer(data);
             }
           }).catch((error) => {
-            console.log("setting popup");
             showPopup("Something went wrong :(");
             console.log(error);
           });
@@ -60,12 +57,14 @@ const Game = (props) => {
   const [placedThisTurn, updatePlaced] = useState({});
   const [toExchange, setToExchange] = useState([]);
   const [entering, setEntering] = useState(false);
+  let enteringLetter = false;
   const [blanks, setBlanks] = useState([]);
   const [inputLetter, setInputLetter] = useState('');
 
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
 
+  let showingVar = false;
   const [popupText, setPopupText] = useState('');
 
   const voteToEnd = () => {
@@ -73,10 +72,7 @@ const Game = (props) => {
       gameId: gameState.id ?? gameState.gameId,
       playerId: name
     }).then((response) => {
-      console.log('VOTE RESPONSE:::');
-      console.log(response);
     }).catch((error) => {
-      console.log("setting popup");
       showPopup("Something went wrong :(");
       console.log(error);
     });
@@ -88,11 +84,9 @@ const Game = (props) => {
     }}).then((response) => {
       if (response.status === axios.HttpStatusCode.Ok) {
         let data = response.data;
-        // console.log(data);
         setGameState(data);
       }
     }).catch((error) => {
-      console.log("setting popup");
       showPopup("Something went wrong :(");
       console.log(error);
     });
@@ -100,32 +94,23 @@ const Game = (props) => {
 
   const makeMove = () => {
     let placement = checkPlacement();
-    // console.log(placement);
-    if (placement === {}) return; // show some sort of message to user
+    if (placement === {}) {
+      showPopup("Invalid Tile Placement");
+      return;
+    } // show some sort of message to user
     // create turn state info
-    let word = Object.values(placedThisTurn);
-    // console.log("word:::");
-    // console.log(word);
+    let word = [];
+    let wordParser = {};
 
-    // questions for julia
-    // - [TurnController line 76] can't call isEmpty() on array (need to convert JS Array to Java List<Int>)
-    // - js might have a list type??? (https://www.collectionsjs.com/list)
-    // - I think I was wrong about the challenging working...
-    // -- the turn doesn't change until after the challenge phase so it seems like the turn that's being skipped is the player that just played the invalid word.
-
-    // asked and answered
-    // - x/y is first PLACED letter
-    // - existing letters should be null (e.g. if h and t are played on existing a, word should be ['h', null, 't'])
-
-    for (let c = 0; c < word.length; c++) {
-      word[c] = word[c].charAt(0);
-    }
-    console.log("word:::");
-    console.log(word);
-
-    // word.splice(col, 0, null);
 
     if (placement.isHorizontal) {
+      for (const [key, value] of Object.entries(placedThisTurn)) {
+        wordParser[key.split('/')[1]] = value;
+      }
+      word = Object.values(wordParser);
+      for (let c = 0; c < word.length; c++) {
+        word[c] = word[c].charAt(0);
+      }
       // get sorted array of cols
       let cols = Object.keys(placedThisTurn).reduce(function(acc, val, index) {
         acc.push(val.split('/')[1]);
@@ -143,6 +128,13 @@ const Game = (props) => {
         } while (diff > 1);
       }
     } else {
+      for (const [key, value] of Object.entries(placedThisTurn)) {
+        wordParser[key.split('/')[0]] = value;
+      }
+      word = Object.values(wordParser);
+      for (let c = 0; c < word.length; c++) {
+        word[c] = word[c].charAt(0);
+      }
       // get sorted array of rows
       let rows = Object.keys(placedThisTurn).reduce(function(acc, val, index) {
         acc.push(val.split('/')[0]);
@@ -167,27 +159,24 @@ const Game = (props) => {
         return total;
       }, []
     );
+    console.log(blankIndices);
     blankIndices = typeof blankIndices !== undefined ? blankIndices : [];
-    // console.log(blankIndices);
-
+    console.log(blankIndices);
     axios.post('/move', {
       gameId: gameState.id ?? gameState.gameId,
-      playerId: name.toString(), // string
-      word: word, // char[]
-      row: parseInt(placement['x']), // int
-      column: parseInt(placement['y']), // int
-      isHorizontal: placement['isHorizontal'], // bool
-      blankIndexes: blankIndices // List<Integer>
+      playerId: name.toString(),
+      word: word,
+      row: parseInt(placement['x']),
+      column: parseInt(placement['y']),
+      isHorizontal: placement['isHorizontal'],
+      blankIndexes: blankIndices // List<Integer> NEED TO FIX THIS
     }).then((response)=> {
-      // console.log('MOVE RESPONSE:::');
-      // console.log(response);
       if (response.status === axios.HttpStatusCode.Ok) {
         // empty placedThisTurn and blanks
         updatePlaced({});
         setBlanks([]);
       }
     }).catch((error) => {
-      console.log("setting popup");
       showPopup("Something went wrong :(");
       console.log(error);
     })
@@ -198,17 +187,12 @@ const Game = (props) => {
     let rows = {};
     let cols = {};
     for (let key in placedThisTurn) {
-      // console.log(key);
       let coords = key.split('/');
       rows[coords[0]] = 1;
       cols[coords[1]] = 1;
     }
-    // console.log(rows);
-    // console.log(cols);
     let rowKeys = Object.keys(rows).sort((a, b) => compare(a, b));
     let colKeys = Object.keys(cols).sort((a, b) => compare(a, b));
-    // console.log(rowKeys);
-    // console.log(colKeys);
 
     // Return the first row and column along with if it is horizontal or not
     if (rowKeys.length === 1) {
@@ -240,11 +224,8 @@ const Game = (props) => {
       gameId: gameState.id ?? gameState.gameId,
       playerId: name
     }).then((response)=> {
-      console.log('PASS RESPONSE:::');
-      console.log(response);
       setToExchange([]);
     }).catch((error) => {
-      console.log("setting popup");
       showPopup("It's not your turn!");
       console.log(error);
     })
@@ -255,11 +236,8 @@ const Game = (props) => {
       gameId: gameState.id ?? gameState.gameId,
       challengerId: name
     }).then((response)=> {
-      console.log('CHALLENGE RESPONSE:::');
-      console.log(response);
       getState();
     }).catch((error) => {
-      console.log("setting popup");
       showPopup("Something went wrong :(");
       console.log(error);
     })
@@ -267,62 +245,95 @@ const Game = (props) => {
 
 
   async function placeTile(e){
-    
-    setEntering(e.dragData.letter === " ");
 
-    const enterLetter = Promise(function(resolve, reject) {
-      setTimeout(() => {
-        console.log(entering);
-        if (!entering) resolve();
-      }, 5000);
-    });
-
-    if (e.dropData.name === 'exchange'){
+    if (e.dropData.name === 'exchange') {
       exchangeDrop(e);
       return;
     }
+
     let isBlank = false;
+
     if (e.dragData.letter === " ") {
-      let blanksCopy = [...blanks];
-      blanksCopy.push(e.dragData.name);
-      setBlanks(blanksCopy);
+      enteringLetter = true;
+      setEntering(true);
       isBlank = true;
-      console.log("Blanks: ", blanks);
-      await enterLetter;
+      await new Promise(function(resolve, reject) {
+        console.log("in promise");
+        let counter = 0;
+        let checker = () => {
+          setTimeout(() => {
+            counter++;
+            console.log(inputLetter.length);
+            if (inputLetter.length === 1 || (!enteringLetter)) resolve();
+            else if (counter > 600) {
+              enteringLetter = false;
+              setEntering(false);
+              reject();
+            } else {
+              console.log(inputLetter);
+              setInputLetter(inputLetter);
+              console.log(inputLetter);
+              checker();
+            };
+          }, 100);
+        }
+        checker();
+      }).then((value) => {
+        enteringLetter = false;
+        setEntering(false);
+        console.log("in the then");
+        let blanksCopy = [...blanks];
+        console.log(e);
+        blanksCopy.push(e.dropData.name);
+        console.log(blanksCopy);
+        setBlanks(blanksCopy);
+        console.log("Blanks: ", blanks);
+
+        let stateCopy = {...gameState};
+        // keep track of where tiles are being placed in a turn
+        let newPlaced = {...placedThisTurn};
+        newPlaced[e.dropData.name] = isBlank ? inputLetter : e.dragData.letter;
+        updatePlaced(newPlaced);
+        console.log(newPlaced);
+        // remove tile from rack
+        stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
+        // place tile on board
+        let coords = e.dropData.name.split('/');
+        stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = isBlank ? inputLetter : e.dragData.letter;
+        // save new state
+        setGameState(stateCopy);
+        // console.log('stateCopy: ', stateCopy);
+      }).catch((error) => {
+        showPopup("Something went wrong :(");
+      });
+      console.log("done with the entering!");
+    } else {
+      let stateCopy = {...gameState};
+      // keep track of where tiles are being placed in a turn
+      let newPlaced = {...placedThisTurn};
+      newPlaced[e.dropData.name] = e.dragData.letter;
+      updatePlaced(newPlaced);
+      // remove tile from rack
+      stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
+      // place tile on board
+      let coords = e.dropData.name.split('/');
+      stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = e.dragData.letter;
+      // save new state
+      setGameState(stateCopy);
+      // console.log('stateCopy: ', stateCopy);
     }
-
-    let stateCopy = {...gameState};
-    // keep track of where tiles are being placed in a turn
-    let newPlaced = {...placedThisTurn};
-    newPlaced[e.dropData.name] = isBlank ? inputLetter : e.dragData.letter;
-    updatePlaced(newPlaced);
-    // console.log(placedThisTurn);
-    // remove tile from rack
-    stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
-    // place tile on board
-    let coords = e.dropData.name.split('/');
-    stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = isBlank ? inputLetter : e.dragData.letter;
-    // save new state
-    setGameState(stateCopy);
-    // console.log('stateCopy: ', stateCopy);
-
-
     // checkPlacement();
+    console.log("synchronus code finished the function");
   }
 
-  // this needs to have the char as well
   function returnToRack(e, coords) {
-    // console.log(e);
     let stateCopy = {...gameState};
     // update tiles placed this turn
-    // console.log('placedThisTurn: ', placedThisTurn);
     let char = placedThisTurn[coords];
     let newPlaced = {...placedThisTurn};
-    // console.log('name ', coords);
     delete newPlaced[coords];
-    // console.log(newPlaced);
     updatePlaced(newPlaced);
-    // console.log(placedThisTurn);
+    console.log(newPlaced);
     // remove tile from board
     coords = coords.split('/');
     stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = "\u0000";
@@ -332,13 +343,11 @@ const Game = (props) => {
       let blanksCopy = [...blanks];
       blanksCopy.splice(blanksCopy.indexOf(coords), 1);
       setBlanks(blanksCopy);
-      console.log("Blanks: ", blanks);
     } else {
       stateCopy.playerMap[name].rack.push(char);
     }
     // save new state
     setGameState(stateCopy);
-    // console.log('stateCopy: ', stateCopy);
   }
 
   function shuffleRack() {
@@ -349,7 +358,6 @@ const Game = (props) => {
         0,
         rackCopy.splice(Math.floor(Math.random() * rackCopy.length), 1)[0]
       );
-      // reorder(rackCopy, Math.floor(Math.random() * rackCopy.length));
     }
     let newState = {...gameState};
     newState.playerMap[name].rack = rackCopy;
@@ -361,7 +369,6 @@ const Game = (props) => {
   }
 
   function exchangeDrop(e) {
-    console.log(`adding '${e.dragData.letter}' to exchange pile`);
     if (!gameState.playerMap[name].rack.includes(e.dragData.letter)) return;
     // Remove tile from rack
     let stateCopy = {...gameState};
@@ -370,21 +377,17 @@ const Game = (props) => {
     // and add it to the exchange pile
     let exCopy = [...toExchange];
     exCopy.push(e.dragData.letter);
-    console.log("new exchange list after place: ", exCopy);
     setToExchange(exCopy);
   }
   
   function returnFromExchange(e, char) {
-    console.log(char);
     let exCopy = [...toExchange];
     exCopy.splice(exCopy.indexOf(char), 1);
-    console.log("new exchange list after return: ", exCopy);
     setToExchange(exCopy);
 
     let stateCopy = {...gameState};
     stateCopy.playerMap[name].rack.push(char);
     setGameState(gameState);
-    console.log(gameState);
   }
 
   function exchange() {
@@ -394,29 +397,31 @@ const Game = (props) => {
       playerId: name,
       letters: toExchange
     }).then((response)=> {
-      console.log('EXCHANGE RESPONSE:::');
-      console.log(response);
       if (response.status === axios.HttpStatusCode.Ok) {
         setToExchange([]);
       }
       getState();
     }).catch((error) => {
-      console.log("setting popup");
       showPopup("Something went wrong :(");
       console.log(error);
     })
   }
   
   const handleKey = (e) => {
-    if (e.keyCode === 13 && inputLetter.length === 1) {
-      // setEnteringBlank(false);
-      setEntering(false);
-    }
+    // if (e.keyCode === 13 && inputLetter.length === 1) {
+    //   // setEnteringBlank(false);
+    //   // enteringLetter = false;
+    //   // setEntering(false);
+    // }
   }
 
   const showPopup = (text) => {
+    showingVar = true;
     setPopupText(text);
-    setTimeout(setPopupText(''), 5050);
+    setTimeout(() => {
+      showingVar = false;
+      setPopupText('');
+    }, 5050);
   }
 
   return <div className="gamePage">
@@ -424,11 +429,13 @@ const Game = (props) => {
     <div className="header">
       <h1>Lobby {gameState.id ?? gameState.gameId}</h1>
     </div>
-    <div className={'popUp' + (popupText !== '' ? ' showing' : '')}>
-      <p>{popupText}</p>
-    </div>
+    { popupText !== '' || showingVar?
+      <div className={"popUp"}>
+        <p>{popupText}</p>
+      </div> : <></>
+    }
     {gameState.status === 'PENDING' ? <Lobby state={gameState} popup={showPopup}/> : <></>}
-    {entering ? <div className="blankPopup">
+    {entering || enteringLetter ? <div className="blankPopup">
       <h2>Enter the letter you would like to play:</h2>
       <TextField
         className='letterInput'
@@ -440,9 +447,12 @@ const Game = (props) => {
       <Button
         variant='contained'
         onClick={() => {
-          if (inputLetter.length === 1) {
-            // setEnteringBlank(false);
+          // if (inputLetter.length === 1 && inputLetter === new RegExp("[a-z]").execute(inputLetter)) {
+          if (inputLetter.length === 1 && new RegExp("[a-z]").exec(inputLetter)) {
+            enteringLetter = false;
             setEntering(false);
+            console.log("entering : " + entering);
+            console.log("enteringLetter : " + enteringLetter);
           }
         }}>
         Enter
@@ -481,7 +491,7 @@ const Game = (props) => {
         <Button
           variant='contained'
           color='primary'
-          disabled={gameState.status !== "CHALLENGE"}
+          disabled={gameState.status !== "CHALLENGE" || currPlayer.id === name}
           onClick={() => challengeMove()}>
           Challenge
         </Button>
@@ -507,7 +517,6 @@ const Game = (props) => {
       <div className="exchange">
         <DropTarget
             targetKey="square"
-            onHit={exchangeDrop}
             dropData={{name: "exchange"}}
         >
           <div className="exDropbox">

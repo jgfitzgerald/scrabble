@@ -3,21 +3,13 @@ import { useState } from 'react';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 
-// Probably want this as an overlay for Game.js
-// - it automatically get's gamestate updates so we know when to hide it
-// - ... that's about it honestly
 
 const Lobby = (props) => {
-
-  console.log(props.state);
 
   const voteToStart = () => {
     axios.patch('/vote', {
       gameId: props.state.id || props.state.gameId,
       playerId: sessionStorage.getItem('name')
-    // }).then((response) => {
-    //   console.log('VOTE RESPONSE:::');
-    //   console.log(response);
     }).catch((error) => {
       props.popup("Something went wrong :(");
       console.log(error);

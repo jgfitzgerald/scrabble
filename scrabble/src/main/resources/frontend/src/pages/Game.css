@@ -44,9 +44,9 @@
     justify-content: center;
 }
 
-.blankPopup h1 {
+.blankPopup h2 {
     padding-bottom: 50px;
-    text-shadow: 0px 0px 10px rgba(0,0,0,0.6);
+    text-shadow: 0px 0px 15px rgba(0,0,0,0.75);
 }
 
 .letterInput{
