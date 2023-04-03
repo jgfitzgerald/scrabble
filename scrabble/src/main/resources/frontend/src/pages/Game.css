@@ -81,6 +81,8 @@
     background-color: rgba(69, 69, 69, 0.69);
     border-radius: 5px;
     padding: 5px;
+    max-width: 200px;
+    flex-wrap: wrap;
 }
 
 .playing {

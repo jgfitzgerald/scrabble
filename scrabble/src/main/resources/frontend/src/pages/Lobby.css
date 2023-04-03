@@ -28,6 +28,7 @@
     aspect-ratio: 1.75;
     display: grid;
     place-items: center;
+    flex-wrap: wrap;
 
     color: #000;
     background-color: var(--random-red);

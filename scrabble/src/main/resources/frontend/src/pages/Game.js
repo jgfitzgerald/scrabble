@@ -9,6 +9,7 @@ import Tile from '../components/tile.js';
 import { Client } from '@stomp/stompjs';
 import { DropTarget } from 'react-drag-drop-container';
 import Lobby from './Lobby';
+import Rules from '../components/Rules';
 
 
 const Game = (props) => {
@@ -60,6 +61,7 @@ const Game = (props) => {
   let enteringLetter = false;
   const [blanks, setBlanks] = useState([]);
   const [inputLetter, setInputLetter] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const { state } = useLocation();
   const [gameState, setGameState] = useState(state);
@@ -97,7 +99,7 @@ const Game = (props) => {
     if (placement === {}) {
       showPopup("Invalid Tile Placement");
       return;
-    } // show some sort of message to user
+    }
     // create turn state info
     let word = [];
     let wordParser = {};
@@ -159,9 +161,7 @@ const Game = (props) => {
         return total;
       }, []
     );
-    console.log(blankIndices);
     blankIndices = typeof blankIndices !== undefined ? blankIndices : [];
-    console.log(blankIndices);
     axios.post('/move', {
       gameId: gameState.id ?? gameState.gameId,
       playerId: name.toString(),
@@ -169,7 +169,7 @@ const Game = (props) => {
       row: parseInt(placement['x']),
       column: parseInt(placement['y']),
       isHorizontal: placement['isHorizontal'],
-      blankIndexes: blankIndices // List<Integer> NEED TO FIX THIS
+      blankIndexes: blankIndices // List<Integer>
     }).then((response)=> {
       if (response.status === axios.HttpStatusCode.Ok) {
         // empty placedThisTurn and blanks
@@ -258,21 +258,21 @@ const Game = (props) => {
       setEntering(true);
       isBlank = true;
       await new Promise(function(resolve, reject) {
-        console.log("in promise");
         let counter = 0;
         let checker = () => {
           setTimeout(() => {
             counter++;
-            console.log(inputLetter.length);
-            if (inputLetter.length === 1 || (!enteringLetter)) resolve();
+            let checkEntering;
+            setEntering(current => {
+              checkEntering = current;
+              return current;
+            });
+            if (inputLetter.length === 1 || (!checkEntering)) resolve();
             else if (counter > 600) {
               enteringLetter = false;
               setEntering(false);
               reject();
             } else {
-              console.log(inputLetter);
-              setInputLetter(inputLetter);
-              console.log(inputLetter);
               checker();
             };
           }, 100);
@@ -281,20 +281,15 @@ const Game = (props) => {
       }).then((value) => {
         enteringLetter = false;
         setEntering(false);
-        console.log("in the then");
         let blanksCopy = [...blanks];
-        console.log(e);
         blanksCopy.push(e.dropData.name);
-        console.log(blanksCopy);
         setBlanks(blanksCopy);
-        console.log("Blanks: ", blanks);
 
         let stateCopy = {...gameState};
         // keep track of where tiles are being placed in a turn
         let newPlaced = {...placedThisTurn};
-        newPlaced[e.dropData.name] = isBlank ? inputLetter : e.dragData.letter;
+        newPlaced[e.dropData.name] = inputLetter;
         updatePlaced(newPlaced);
-        console.log(newPlaced);
         // remove tile from rack
         stateCopy.playerMap[name].rack.splice(stateCopy.playerMap[name].rack.indexOf(e.dragData.letter), 1);
         // place tile on board
@@ -302,11 +297,9 @@ const Game = (props) => {
         stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = isBlank ? inputLetter : e.dragData.letter;
         // save new state
         setGameState(stateCopy);
-        // console.log('stateCopy: ', stateCopy);
       }).catch((error) => {
         showPopup("Something went wrong :(");
       });
-      console.log("done with the entering!");
     } else {
       let stateCopy = {...gameState};
       // keep track of where tiles are being placed in a turn
@@ -320,10 +313,7 @@ const Game = (props) => {
       stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = e.dragData.letter;
       // save new state
       setGameState(stateCopy);
-      // console.log('stateCopy: ', stateCopy);
     }
-    // checkPlacement();
-    console.log("synchronus code finished the function");
   }
 
   function returnToRack(e, coords) {
@@ -333,7 +323,6 @@ const Game = (props) => {
     let newPlaced = {...placedThisTurn};
     delete newPlaced[coords];
     updatePlaced(newPlaced);
-    console.log(newPlaced);
     // remove tile from board
     coords = coords.split('/');
     stateCopy.board.board[parseInt(coords[0])][parseInt(coords[1])].letter = "\u0000";
@@ -362,10 +351,6 @@ const Game = (props) => {
     let newState = {...gameState};
     newState.playerMap[name].rack = rackCopy;
     setGameState(newState);
-  }
-
-  function toggleRules() {
-    // just toggle the rules popup
   }
 
   function exchangeDrop(e) {
@@ -408,11 +393,10 @@ const Game = (props) => {
   }
   
   const handleKey = (e) => {
-    // if (e.keyCode === 13 && inputLetter.length === 1) {
-    //   // setEnteringBlank(false);
-    //   // enteringLetter = false;
-    //   // setEntering(false);
-    // }
+    if (e.keyCode === 13 && inputLetter.length === 1) {
+      enteringLetter = false;
+      setEntering(false);
+    }
   }
 
   const showPopup = (text) => {
@@ -422,6 +406,10 @@ const Game = (props) => {
       showingVar = false;
       setPopupText('');
     }, 5050);
+  }
+
+  const toggleRules = () => {
+    setIsOpen(!isOpen);
   }
 
   return <div className="gamePage">
@@ -447,12 +435,9 @@ const Game = (props) => {
       <Button
         variant='contained'
         onClick={() => {
-          // if (inputLetter.length === 1 && inputLetter === new RegExp("[a-z]").execute(inputLetter)) {
           if (inputLetter.length === 1 && new RegExp("[a-z]").exec(inputLetter)) {
             enteringLetter = false;
             setEntering(false);
-            console.log("entering : " + entering);
-            console.log("enteringLetter : " + enteringLetter);
           }
         }}>
         Enter
@@ -475,6 +460,7 @@ const Game = (props) => {
         </div>
     </div>
     <div className="gameMenu">
+      <Rules isOpen={isOpen} toggleDropdown={toggleRules}/>
       <div className="menuButtons">
         <Button
           variant='contained'
@@ -506,12 +492,6 @@ const Game = (props) => {
           color='primary'
           onClick={() => voteToEnd()}>
           Vote to End
-        </Button>
-        <Button
-          variant='contained'
-          color='primary'
-          onClick={() => toggleRules()}>
-          Rules
         </Button>
       </div>
       <div className="exchange">
