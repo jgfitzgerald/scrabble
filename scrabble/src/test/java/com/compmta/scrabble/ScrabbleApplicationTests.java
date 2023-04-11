@@ -10,4 +10,5 @@ class ScrabbleApplicationTests {
 	void contextLoads() {
 	}
 
+
 }
