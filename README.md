@@ -1,4 +1,5 @@
-# Scrabble: COMP 4271 Term Project
+
+<h1>Scrabble: COMP 4271 Term Project</h1>
 
 Requirements:
 - JDK 17

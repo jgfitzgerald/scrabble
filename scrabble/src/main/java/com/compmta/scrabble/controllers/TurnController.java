@@ -38,14 +38,13 @@ public class TurnController {
 
     //TODO priority list (in order of highest to lowest): Testing and refactoring
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
+        if (turnInfo == null) { // passed turn
+            return null;
+        }
         String gameId = turnInfo.gameId();
         GameState game = gsController.getGameDatabase().get(gameId);
         if (gsController.getGameDatabase().get(gameId).getStatus() != IN_PROGRESS) {
             throw new IllegalStateException("Cannot place command as game is " + gsController.getGameDatabase().get(gameId).getStatus());
-        }
-        if (turnInfo == null) { // passed turn
-            gsController.getGameDatabase().get(gameId).getTurnLog().add(null);
-            return null;
         }
         if (gsController.getGameDatabase().get(gameId).getPlayerMap().get(turnInfo.playerId()) == null) {
             throw new IllegalArgumentException("This player is not in the game.");
@@ -134,7 +133,7 @@ public class TurnController {
         }
 
         if (gsController.getGameDatabase().get(gameId).checkEndConditions()) {
-            this.endGame(gameId);
+            gsController.getGameDatabase().get(gameId).endGame();
         }
     }
 
@@ -180,25 +179,6 @@ public class TurnController {
 
         gsController.getGameDatabase().get(gameId).getTurnLog().add(null);
         this.endTurn(gameId);
-    }
-
-    /**
-     * Ends the game. Sets the status to finished, preventing further requests.
-     * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
-     */
-    private void endGame(String gameId) {
-        gsController.getGameDatabase().get(gameId).setStatus(FINISHED);
-        gsController.getGameDatabase().get(gameId).unplayedLetterScores();
-        PlayerInfo currWinner = null;
-        int maxScore = 0;
-        for (PlayerInfo p : gsController.getGameDatabase().get(gameId).getPlayers()) {
-            if (p.getTotalScore() > maxScore) {
-                currWinner = p;
-                maxScore = currWinner.getTotalScore();
-            }
-            if (maxScore == 0) gsController.getGameDatabase().get(gameId).setCurrPlayer(null);
-            else gsController.getGameDatabase().get(gameId).setCurrPlayer(p);
-        }
     }
 
     public void challengePhase(TurnInfo turnInfo) {
