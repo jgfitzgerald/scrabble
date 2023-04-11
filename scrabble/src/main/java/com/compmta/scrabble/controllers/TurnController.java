@@ -2,22 +2,22 @@ package com.compmta.scrabble.controllers;
 
 //imports
 
+import com.compmta.scrabble.controllers.DTO.ChallengeInfo;
 import com.compmta.scrabble.controllers.DTO.GameStateInfo;
 import com.compmta.scrabble.controllers.DTO.TurnInfo;
 import com.compmta.scrabble.controllers.DTO.WordInfo;
-import com.compmta.scrabble.model.Board;
-import com.compmta.scrabble.model.PlayerInfo;
-import com.compmta.scrabble.model.Turn;
+import com.compmta.scrabble.model.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import static com.compmta.scrabble.model.GameStatus.FINISHED;
+import static com.compmta.scrabble.model.GameStatus.*;
 
 @Getter
 @Setter
@@ -28,10 +28,7 @@ public class TurnController {
     //instance variables
     @Autowired
     private GameStateController gsController;
-    static PlayerInfo currPlayer;
-    static Board board;
-    private int turnCount;
-    static ArrayList<String> challengers;
+
 
     /**
      * Takes a TurnInfo DTO and applies the given requests if applicable.
@@ -39,155 +36,105 @@ public class TurnController {
      * @return GameStateInfo after the effects of the turn
      */
 
-    //TODO priority list (in order of highest to lowest): unplayed letters, challenging
+    //TODO priority list (in order of highest to lowest): Testing and refactoring
     public GameStateInfo takeTurn(TurnInfo turnInfo) throws InterruptedException {
         if (turnInfo == null) { // passed turn
-            gsController.getGameState().getTurnLog().add(null);
             return null;
         }
-        if (challengers.contains(turnInfo.id())) {
-            challengers.remove(challengers.indexOf(turnInfo.id()));
-            return null;
+        String gameId = turnInfo.gameId();
+        GameState game = gsController.getGameDatabase().get(gameId);
+        if (gsController.getGameDatabase().get(gameId).getStatus() != IN_PROGRESS) {
+            throw new IllegalStateException("Cannot place command as game is " + gsController.getGameDatabase().get(gameId).getStatus());
         }
-        if (gsController.getGameState().getPlayerMap().get(turnInfo.id()) == null) {
+        if (gsController.getGameDatabase().get(gameId).getPlayerMap().get(turnInfo.playerId()) == null) {
             throw new IllegalArgumentException("This player is not in the game.");
         }
-        if (turnInfo.id().compareTo(currPlayer.getId()) != 0) {
+        if (turnInfo.playerId().compareTo(game.getCurrPlayer().getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
-        if (turnCount == 0) {
-            if (!board.validateInitialMove(turnInfo)) {
+        if (!gsController.getGameDatabase().get(gameId).isNotInitial()) {
+            if (!game.getBoard().validateInitialMove(turnInfo)) {
                 throw new IllegalArgumentException("Invalid initial move request. Please try again.");
             }
-        } else if (!board.validateMove(turnInfo)) {
+        } else if (!game.getBoard().validateMove(turnInfo)) {
             throw new IllegalArgumentException("Invalid move request. Please try again.");
         }
 
         char[] word = turnInfo.word().clone();
 
         if (!turnInfo.blankIndexes().isEmpty()) {
-            if (Collections.frequency(currPlayer.getRack(), ' ') < turnInfo.blankIndexes().size()) {
+            if (Collections.frequency(game.getCurrPlayer().getRack(), ' ') < turnInfo.blankIndexes().size()) {
                 throw new IllegalArgumentException("Invalid argument. Too many blank letters were specified.");
             }
             for (Integer i : turnInfo.blankIndexes()) {
                 word[i] = Board.DEFAULT;
             }
         }
-
         for (char c : word) {
-            if (c != Board.DEFAULT && !currPlayer.getRack().contains(c)) {
+            if (c != Board.DEFAULT && !game.getCurrPlayer().getRack().contains(c)) {
                 throw new IllegalArgumentException("Invalid word choice, rack does not contain 1 or more required letters: " + c);
             }
         }
 
-        for (WordInfo w : board.detectWords(turnInfo)) {
-            System.out.println(w);
-        }
+        gsController.getGameDatabase().get(turnInfo.gameId()).setLatch(new CountDownLatch(1));
+        gsController.getGameDatabase().get(turnInfo.gameId()).setTurnThread(Thread.currentThread());
+        gsController.getGameDatabase().get(turnInfo.gameId()).setWords(game.getBoard().detectWords(turnInfo));
 
-        for (WordInfo w : board.detectWords(turnInfo)) {
-            if (!gsController.getGameState().dictionary.verifyWord(w.word())) {
-                throw new IllegalArgumentException("Following word is not contained in the dictionary: " + w.word());
-            }
+        for (WordInfo w : gsController.getGameDatabase().get(turnInfo.gameId()).getWords()) {
+            System.out.println(w);
         }
 
         System.out.println("Removing tiles from rack");
         for (char c : word) {
             if (c != Board.DEFAULT) {
-                currPlayer.getRack().remove(currPlayer.getRack().indexOf(c));
+                gsController.getGameDatabase().get(turnInfo.gameId()).getCurrPlayer().getRack().remove(gsController.getGameDatabase().get(turnInfo.gameId()).getCurrPlayer().getRack().indexOf(c));
             }
-        }
-        for (Integer i : turnInfo.blankIndexes()) {
-            if (turnInfo.isHorizontal()) {
-                board.setBlankLetter(turnInfo.row(),turnInfo.column() + i, turnInfo.word()[i]);
-            } else {
-                board.setBlankLetter(turnInfo.row() + i,turnInfo.column(), turnInfo.word()[i]);
-            }
-            currPlayer.getRack().remove(currPlayer.getRack().indexOf(' '));
         }
 
-        System.out.println("Making new Turn");
+        int score = game.getBoard().scoreMove(turnInfo);
+
         Turn newMove = new Turn(turnInfo);
-        gsController.getGameState().getTurnLog().add(newMove);
-
-        int score = board.scoreMove(turnInfo);
         newMove.setScore(score);
-        currPlayer.updateScore(score);
-
-        if (currPlayer.getRack().isEmpty()) {
-            currPlayer.updateScore(50);
-        }
+        gsController.getGameDatabase().get(turnInfo.gameId()).getCurrPlayer().updateScore(score);
 
         System.out.println("Applying turn");
-        board.applyTurn(newMove);
+        gsController.getGameDatabase().get(turnInfo.gameId()).getBoard().applyTurn(newMove);
 
-        gsController.getGameState().drawLetters(currPlayer);
+        System.out.println("Adding turn to log");
+        gsController.getGameDatabase().get(gameId).getTurnLog().add(newMove);
 
-        System.out.println("Ending Turn");
-        this.endTurn();
-        turnCount++;
+        if (gsController.getGameDatabase().get(turnInfo.gameId()).getCurrPlayer().getRack().isEmpty()) {
+            gsController.getGameDatabase().get(turnInfo.gameId()).getCurrPlayer().updateScore(50);
+        }
 
-        return new GameStateInfo(gsController.getGameState().getId(), board, gsController.getPlayerList());
+        gsController.getGameDatabase().get(gameId).setStatus(CHALLENGE);
+        return new GameStateInfo(gsController.getGameDatabase().get(gameId).getId(), gsController.getGameDatabase().get(gameId).getStatus(), gsController.getGameDatabase().get(gameId).getBoard(), gsController.getGameDatabase().get(gameId).getPlayerMap());
     } //startTurn()
-
-    /*public boolean challengeWord(ChallengeInfo challenge) {
-
-        String challenger = challenge.challengerId();
-        String player = challenge.playerId();
-        TurnInfo turn = new TurnInfo(player, challenge.word(), challenge.row(), challenge.column(), challenge.isHorizontal());
-        if (player != currPlayer.getId()) {
-            throw new IllegalArgumentException("It is not this player's turn.");
-        }
-        ArrayList<WordInfo> words = board.detectWords(turn);
-        int i = 0;
-        while (Dictionary.verifyWord(words.get(i).word()) && i < words.size()) {
-            i++;
-        }
-        if (i < words.size()) {
-            ArrayList<Character> path = board.getLettersOnPath(turn);
-            ArrayList<Character> removed = board.removeWord(turn.word(), turn.row(), turn.column(), turn.isHorizontal(), path);
-
-            // return to rack
-            int returned = currPlayer.getRack().size() - removed.size();
-            for (int j = returned; j < currPlayer.getRack().size(); j++) {
-                gsController.getGameState().getLetters().add(currPlayer.getRack().remove(j));
-            }
-            for (char c : removed) {
-                currPlayer.getRack().add(c);
-            }
-
-            currPlayer.updateScore(-1 * board.scoreMove(turn));
-            gsController.getGameState().getTurnLog().remove(gsController.getGameState().getTurnLog().size()-1);
-            gsController.getGameState().getTurnLog().add(null);
-            return true;
-
-        } else {
-            challengers.add(challenger);
-            return false;
-        }
-    }*/
 
     /**
      * Ends the turn of the current player.
      */
-    public void endTurn() {
-        if (gsController.getPlayerList().indexOf(currPlayer) == gsController.getPlayerList().size()-1) {
-            this.setCurrPlayer(gsController.getPlayerList().get(0));
+    private void endTurn(String gameId) {
+        for (PlayerInfo p : gsController.getGameDatabase().get(gameId).getPlayers()) {
+            if (p.getTotalScore() > 0) {
+                gsController.getGameDatabase().get(gameId).setNotInitial(true);
+            }
+        }
+        gsController.getGameDatabase().get(gameId).drawLetters(gsController.getGameDatabase().get(gameId).getCurrPlayer());
+        if (gsController.getGameDatabase().get(gameId).getPlayers().indexOf(gsController.getGameDatabase().get(gameId).getCurrPlayer()) == gsController.getGameDatabase().get(gameId).getPlayers().size()-1) {
+            gsController.getGameDatabase().get(gameId).setCurrPlayer(gsController.getGameDatabase().get(gameId).getPlayers().get(0));
         } else {
-            int next = gsController.getPlayerList().indexOf(currPlayer) + 1;
-            this.setCurrPlayer(gsController.getPlayerList().get(next));
+            int next = gsController.getGameDatabase().get(gameId).getPlayers().indexOf(gsController.getGameDatabase().get(gameId).getCurrPlayer()) + 1;
+            gsController.getGameDatabase().get(gameId).setCurrPlayer(gsController.getGameDatabase().get(gameId).getPlayers().get(next));
+            if (gsController.getGameDatabase().get(gameId).getChallengers().contains(gsController.getGameDatabase().get(gameId).getCurrPlayer().getId())) {
+                gsController.getGameDatabase().get(gameId).getChallengers().remove(gsController.getGameDatabase().get(gameId).getCurrPlayer().getId());
+                this.endTurn(gameId);
+            }
         }
 
-        if (gsController.getGameState().checkEndConditions()) {
-            this.endGame();
+        if (gsController.getGameDatabase().get(gameId).checkEndConditions()) {
+            gsController.getGameDatabase().get(gameId).endGame();
         }
-    }
-
-    static void setCurrPlayer(PlayerInfo in) {
-        currPlayer = in;
-    }
-
-    static void setChallengers(ArrayList<String> in) {
-        challengers = in;
     }
 
     /**
@@ -195,57 +142,84 @@ public class TurnController {
      * @param id The player id
      * @param toExchange An array of characters to be exchanged
      */
-    public void exchangeLetters(String id, char[] toExchange) {
-        if (id.compareTo(currPlayer.getId()) != 0) {
+    public void exchangeLetters(String gameId, String id, char[] toExchange) {
+        if (gsController.getGameDatabase().get(gameId).getStatus() != IN_PROGRESS) {
+            throw new IllegalStateException("Cannot place command as game is " + gsController.getGameDatabase().get(gameId).getStatus());
+        }
+        if (id.compareTo(gsController.getGameDatabase().get(gameId).getCurrPlayer().getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
         for (char c : toExchange) {
-            if (!currPlayer.getRack().contains(c)) {
+            if (!gsController.getGameDatabase().get(gameId).getCurrPlayer().getRack().contains(c)) {
                 throw new IllegalArgumentException("One or more letters specified are not in the current player's rack.");
             }
         }
 
         for (char c : toExchange) {
-            gsController.getGameState().getLetters().add(currPlayer.getRack().remove(currPlayer.getRack().indexOf(c)));
+            gsController.getGameDatabase().get(gameId).getLetters().add(gsController.getGameDatabase().get(gameId).getCurrPlayer().getRack().remove(gsController.getGameDatabase().get(gameId).getCurrPlayer().getRack().indexOf(c)));
         }
 
-        gsController.getGameState().getTurnLog().add(null);
-        gsController.getGameState().drawLetters(currPlayer);
+        gsController.getGameDatabase().get(gameId).getTurnLog().add(null);
+        gsController.getGameDatabase().get(gameId).drawLetters(gsController.getGameDatabase().get(gameId).getCurrPlayer());
 
-        this.endTurn();
+        this.endTurn(gameId);
     }
 
     /**
      * Passes the turn of the current player.
      * @param name The current player
      */
-    public void passTurn(String name) {
-        if (name.compareTo(currPlayer.getId()) != 0) {
+    public void passTurn(String gameId, String name) {
+        if (gsController.getGameDatabase().get(gameId).getStatus() != IN_PROGRESS) {
+            throw new IllegalStateException("Cannot place command as game is " + gsController.getGameDatabase().get(gameId).getStatus());
+        }
+        if (name.compareTo(gsController.getGameDatabase().get(gameId).getCurrPlayer().getId()) != 0) {
             throw new IllegalArgumentException("It is not your turn!");
         }
 
-        gsController.getGameState().getTurnLog().add(null);
-        this.endTurn();
+        gsController.getGameDatabase().get(gameId).getTurnLog().add(null);
+        this.endTurn(gameId);
     }
 
-    /**
-     * Ends the game. Sets the status to finished, preventing further requests.
-     * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
-     */
-    private void endGame() {
-        gsController.getGameState().setStatus(FINISHED);
-        PlayerInfo currWinner = null;
-        int maxScore = 0;
-        for (PlayerInfo p : getGsController().getPlayerList()) {
-            if (p.getTotalScore() > maxScore) {
-                currWinner = p;
-                maxScore = currWinner.getTotalScore();
+    public void challengePhase(TurnInfo turnInfo) {
+        String gameId = turnInfo.gameId();
+        try {
+            System.out.println("Five seconds to challenge.");
+            gsController.getGameDatabase().get(gameId).getLatch().await(5, TimeUnit.SECONDS);
+            gsController.getGameDatabase().get(gameId).setStatus(IN_PROGRESS);
+            this.endTurn(gameId);
+        } catch (InterruptedException e) {
+            // return tiles to rack
+            gsController.getGameDatabase().get(gameId).getBoard().removeWord(turnInfo);
+            gsController.getGameDatabase().get(gameId).getCurrPlayer().updateScore(-1 * gsController.getGameDatabase().get(gameId).getBoard().scoreMove(turnInfo));
+            System.out.println("Successfully challenged");
+            for (char c : turnInfo.word()) {
+                if (c != Board.DEFAULT) {
+                    gsController.getGameDatabase().get(gameId).getCurrPlayer().getRack().add(c);
+                }
             }
-            if (maxScore == 0) {
-                currPlayer = null;
-            } else {
-                currPlayer = p;
-            }
+            gsController.getGameDatabase().get(gameId).getTurnLog().remove(gsController.getGameDatabase().get(gameId).getTurnLog().size() - 1);
+            gsController.getGameDatabase().get(gameId).setStatus(IN_PROGRESS);
+            this.endTurn(gameId);
+        }
+    }
+
+    public void challengeWord(ChallengeInfo challengerInfo) {
+        System.out.println("In challenge word");
+        for (WordInfo w : gsController.getGameDatabase().get(challengerInfo.gameId()).getWords()) {
+            System.out.println(w);
+        }
+        Challenge challenge = new Challenge(gsController.getGameDatabase().get(challengerInfo.gameId()).getWords());
+        if (!challenge.isValid()) {
+            // word is valid, interrupt takeTurn and continue
+            System.out.println("invalid challenge");
+            gsController.getGameDatabase().get(challengerInfo.gameId()).getChallengers().add(challengerInfo.challengerId());
+            gsController.getGameDatabase().get(challengerInfo.gameId()).getLatch().countDown();
+        } else {
+            System.out.println("valid challenge");
+            // word is invalid, interrupt takeTurn and cancel
+            gsController.getGameDatabase().get(challengerInfo.gameId()).getTurnThread().interrupt();
+            gsController.getGameDatabase().get(challengerInfo.gameId()).getLatch().countDown();
         }
     }
 }

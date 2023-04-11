@@ -1,34 +1,51 @@
 package com.compmta.scrabble.model;
 
+import com.compmta.scrabble.controllers.DTO.TurnInfo;
+import com.compmta.scrabble.controllers.DTO.WordInfo;
 import com.compmta.scrabble.util.Letter;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
-@NoArgsConstructor
+import static com.compmta.scrabble.model.GameStatus.FINISHED;
+import static com.compmta.scrabble.model.GameStatus.PENDING;
+
 @Getter
 @Setter
 public class GameState {
     private String id;
     private ArrayList<PlayerInfo> players;
     private HashMap<String, PlayerInfo> playerMap;
-    private int votedToEnd;
     private GameStatus status;
     private ArrayList<Character> letters;
     private ArrayList<Turn> turnLog;
     private Board board;
     public static Dictionary dictionary;
 
+    // Turn instance variables
+    private PlayerInfo currPlayer;
+    private TurnInfo currentTurn;
+    private List<WordInfo> words;
+    private int score;
+    private boolean notInitial;
+    private ArrayList<String> challengers;
+    private Thread turnThread;
+    private CountDownLatch latch;
     private static final int RACK_SIZE = 7;
 
+    public GameState() {
+        status = PENDING;
+        players = new ArrayList<>();
+        playerMap = new HashMap<>();
+        this.setId(UUID.randomUUID().toString());
+    }
+
     public void addPlayer(PlayerInfo p) {
+        playerMap.put(p.getId(), p);
         players.add(p);
     }
 
@@ -38,24 +55,18 @@ public class GameState {
 
     /**
      * Initializes all game elements
-     * @param players List of players
-     * @return Initialized game state
      */
-    public static GameState initialize(ArrayList<PlayerInfo> players) {
-        GameState gs = new GameState();
-        gs.setId(UUID.randomUUID().toString());
-        gs.setPlayers(players);
-        gs.setStatus(GameStatus.IN_PROGRESS);
-        gs.setBoard(new Board());
-        gs.initializeLetters();
-        gs.setTurnLog(new ArrayList<Turn>());
+    public void initialize() {
+        this.setStatus(GameStatus.IN_PROGRESS);
+        this.setBoard(new Board());
+        this.initializeLetters();
+        this.setTurnLog(new ArrayList<Turn>());
         File dict = new File("docs/Collins Scrabble Words (2019).txt");
         try {
             dictionary = new Dictionary(dict);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return gs;
     }
 
     /**
@@ -106,11 +117,51 @@ public class GameState {
             }
         }
         for (PlayerInfo p : players) {
-            if (!p.getVote()) {
+            if (p.getVote()) {
                 return false;
             }
         }
         return true;
     }
 
+    /**
+     * When the game ends, each player's score is reduced by the sum of his or her unplayed letters.
+     * In addition, if a player has used all of his or her letters, the sum of the other players' unplayed letters is added to that player's score.
+     */
+    public void unplayedLetterScores() {
+        int scoreReduce = 0;
+        for (PlayerInfo p : players) {
+            if (!p.getRack().isEmpty()) {
+                for (char c : p.getRack()) {
+                    p.updateScore(-1 * Letter.map.get(c).getBaseScore());
+                    scoreReduce += Letter.map.get(c).getBaseScore();
+                    System.out.print("reducing score");
+                }
+            }
+        }
+        for (PlayerInfo p : players) {
+            if (p.getRack().isEmpty()) {
+                p.updateScore(scoreReduce);
+            }
+        }
+    }
+
+    /**
+     * Ends the game. Sets the status to finished, preventing further requests.
+     * Sets TurnController's currPlayer attribute to the winner, or null if there is no winner.
+     */
+    public void endGame() {
+        this.setStatus(FINISHED);
+        this.unplayedLetterScores();
+        PlayerInfo currWinner = null;
+        int maxScore = 0;
+        for (PlayerInfo p : this.getPlayers()) {
+            if (p.getTotalScore() > maxScore) {
+                currWinner = p;
+                maxScore = currWinner.getTotalScore();
+            }
+            if (maxScore == 0) this.setCurrPlayer(null);
+            else this.setCurrPlayer(p);
+        }
+    }
 }

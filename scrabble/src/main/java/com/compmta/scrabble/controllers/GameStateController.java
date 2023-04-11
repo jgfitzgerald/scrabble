@@ -8,80 +8,85 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.compmta.scrabble.model.GameStatus.FINISHED;
+import static com.compmta.scrabble.model.GameStatus.*;
 
 @Getter
 @Component
 public class GameStateController {
 
-    private static final int INITIAL_LETTER_AMT = 7;
+    private HashMap<String, GameState> gameDatabase;
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 4;
-    private static final int NUM_PASSES = 3;
-
-    private GameState gameState;
-    static HashMap<String, PlayerInfo> players;
-    private final ArrayList<PlayerInfo> playerList;
 
     public GameStateController() {
-        this.playerList = new ArrayList<PlayerInfo>();
-        players = new HashMap<String, PlayerInfo>();
+        gameDatabase = new HashMap<>();
     }
 
-    /**
-     * @return The current game state
-     */
-    public GameState getGameState() {
-        return gameState;
+    public GameState newGame() {
+        GameState newGame = new GameState();
+        gameDatabase.put(newGame.getId(), newGame);
+        return newGame;
     }
 
     /**
      * Adds a player with the specified name to the game
-     * @param id The requested id
+     * @param playerId The requested id
      * @return The PlayerInfo
      */
-    public PlayerInfo joinGame(String id) {
-        if (players.size() == MAX_PLAYERS) {
+    public PlayerInfo joinGame(String gameId, String playerId) {
+        if (gameDatabase.get(gameId).getPlayers().size() == MAX_PLAYERS) {
             throw new IllegalStateException("This game is already full.");
         }
-        if (players.get(id) != null) {
+        if (gameDatabase.get(gameId).getPlayerMap().get(playerId) != null) {
             throw new IllegalArgumentException("Player name is taken.");
         }
-        PlayerInfo p = new PlayerInfo(id);
-        players.put(id, p);
-        playerList.add(p);
+        PlayerInfo p = new PlayerInfo(playerId);
+        gameDatabase.get(gameId).addPlayer(p);
         return p;
     }
 
     /**
      * Sets up the relevent parts of the game
      */
-    public void setUpGame() {
-        if (players.size() < MIN_PLAYERS) {
+
+    public void setUpGame(String gameId) {
+        if (gameDatabase.get(gameId).getPlayers().size() < MIN_PLAYERS) {
             throw new IllegalStateException("Can't start game with only 1 player!");
         }
-        if (gameState == null) {
-            gameState = GameState.initialize(playerList);
-            gameState.setPlayerMap(players);
-            TurnController.board = gameState.getBoard();
-            for (PlayerInfo p : gameState.getPlayers()) {
-                gameState.drawLetters(p);
+        if (gameDatabase.get(gameId).getStatus() == PENDING) {
+            gameDatabase.get(gameId).initialize();
+            for (PlayerInfo p : gameDatabase.get(gameId).getPlayers()) {
+                gameDatabase.get(gameId).drawLetters(p);
             }
-            TurnController.setCurrPlayer(playerList.get(0));
-            TurnController.setChallengers(new ArrayList<>());
+            gameDatabase.get(gameId).setCurrPlayer(gameDatabase.get(gameId).getPlayers().get(0));
+            gameDatabase.get(gameId).setChallengers(new ArrayList<>());
         }
     } //setUpGame()
 
     /**
-     * Sets the player's vote attribute to true.
-     * If all player's wish to end the game, then the game will end at the end of the next turn.
-     * @param id The id of the player who wishes to terminate the game.
+     * Switches the player's vote attribute.
+     * Will automatically start the game if game is pending and all player's votes are true.
+     * @param playerId The id of the player who voted
      */
-    void voteToEnd(String id) {
-        for (PlayerInfo p : gameState.getPlayers()) {
-            if (p.getId().equals(id)) {
-                p.setVote(true);
+    void vote(String gameId, String playerId) {
+        for (PlayerInfo p : gameDatabase.get(gameId).getPlayers()) {
+            if (p.getId().equals(playerId)) {
+                p.setVote(!p.getVote());
             }
+        }
+        if (gameDatabase.get(gameId).getStatus() == PENDING) {
+            int i = 0;
+            for (PlayerInfo p : gameDatabase.get(gameId).getPlayers()) {
+                if (p.getVote()) {
+                    i++;
+                }
+            }
+            if (i == gameDatabase.get(gameId).getPlayers().size()) {
+                this.setUpGame(gameId);
+            }
+        }
+        if (gameDatabase.get(gameId).getStatus() == IN_PROGRESS && gameDatabase.get(gameId).checkEndConditions()) {
+            gameDatabase.get(gameId).endGame();
         }
     }
 

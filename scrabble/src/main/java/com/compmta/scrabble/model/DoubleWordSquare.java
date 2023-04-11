@@ -4,6 +4,7 @@ import com.compmta.scrabble.util.Letter;
 
 public class DoubleWordSquare extends Square {
 
+    public static final String LABEL = "DW";
     private static final char DEFAULT = '\u0000';
     private char letter;
 
@@ -16,6 +17,9 @@ public class DoubleWordSquare extends Square {
      */
     @Override
     public int effect(String word, int score, int index) {
+        if (index > word.length()) {
+            throw new IllegalArgumentException("Invalid index specified.");
+        }
         if (index == word.length() && this.getLetter() == DEFAULT) {
             return score;
         } else if (index == word.length()) {

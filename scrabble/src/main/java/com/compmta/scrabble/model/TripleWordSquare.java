@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TripleWordSquare extends Square {
 
+    public static final String LABEL = "TW";
     private char letter;
 
     private static final char DEFAULT = '\u0000';
@@ -19,6 +20,9 @@ public class TripleWordSquare extends Square {
      */
     @Override
     public int effect(String word, int score, int index) {
+        if (index > word.length()) {
+            throw new IllegalArgumentException("Invalid index specified.");
+        }
         if (index == word.length() && this.getLetter() == DEFAULT) {
             return score * 2;
         } else if (index == word.length()) {

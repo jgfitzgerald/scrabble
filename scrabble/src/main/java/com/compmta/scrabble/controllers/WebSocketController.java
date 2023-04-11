@@ -1,9 +1,6 @@
 package com.compmta.scrabble.controllers;
 
-import com.compmta.scrabble.controllers.DTO.LettersInfo;
-import com.compmta.scrabble.controllers.DTO.PlayerId;
-import com.compmta.scrabble.controllers.DTO.TurnInfo;
-import com.compmta.scrabble.controllers.DTO.VoteInfo;
+import com.compmta.scrabble.controllers.DTO.*;
 import com.compmta.scrabble.model.GameState;
 import com.compmta.scrabble.model.PlayerInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +11,10 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import static com.compmta.scrabble.model.GameStatus.FINISHED;
+import java.util.Arrays;
+import java.util.Map;
+
+import static com.compmta.scrabble.model.GameStatus.*;
 
 @RestController
 @Slf4j
@@ -31,32 +31,28 @@ public class WebSocketController {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     /**
-     * Sends a request to GameStateController to add a new player to the game
-    */
-    @PostMapping("/join")
-    public ResponseEntity<Void> join(@RequestBody PlayerId id) throws Exception {
-        if (game.getGameState() != null) {
-            log.info("Invalid request, game is already in progress.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        log.info("join request for id: {}", id);
-        game.joinGame(id.id());
-        return new ResponseEntity<>(HttpStatus.OK);
+     * Sends a request to GameStateController to create a new game
+     */
+    @PostMapping("/newGame")
+    public ResponseEntity<GameStateInfo> newGame() {
+        log.info("Received request to create new game.");
+        GameState newGame = game.newGame();
+        return ResponseEntity.ok(new GameStateInfo(newGame.getId(), newGame.getStatus(), newGame.getBoard(), newGame.getPlayerMap()));
     }
 
     /**
-     * Sends a request to GameStateController to set up the game
-     */
-    @PostMapping("/start")
-    public ResponseEntity<Void> start() {
-        if (game.getGameState() != null) {
-            log.info("Invalid request, game is already in progress.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+     * Sends a request to GameStateController to add a new player to the game
+    */
+    @PostMapping("/join")
+    public ResponseEntity<GameStateInfo> join(@RequestBody JoinInfo joinInfo) throws Exception {
+        log.info("join request for id: {}, game id {}", joinInfo.gameId(), joinInfo.playerId());
+        if (game.getGameDatabase().get(joinInfo.gameId()) == null) {
+            log.info("Error: Game id not found: " + joinInfo.gameId());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        log.info("starting...");
-        game.setUpGame();
-        simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
-        return new ResponseEntity<>(HttpStatus.OK);
+        game.joinGame(joinInfo.gameId(), joinInfo.playerId());
+        sendGameState(joinInfo.gameId());
+        return ResponseEntity.ok(new GameStateInfo(joinInfo.gameId(), game.getGameDatabase().get(joinInfo.gameId()).getStatus(), game.getGameDatabase().get(joinInfo.gameId()).getBoard(), game.getGameDatabase().get(joinInfo.gameId()).getPlayerMap()));
     }
 
     /**
@@ -64,17 +60,25 @@ public class WebSocketController {
      */
     @GetMapping("/gamestate")
     @SendTo("/game/gameState")
-    public ResponseEntity<GameState> getGame() throws Exception {
+    public ResponseEntity<GameStateInfo> getGame(@RequestParam String gameId) throws Exception {
+        if (game.getGameDatabase().get(gameId) == null) {
+            log.info("Error: Game id not found: " + gameId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         log.info("fetch game");
-        return ResponseEntity.ok(game.getGameState());
+        return ResponseEntity.ok(new GameStateInfo(gameId, game.getGameDatabase().get(gameId).getStatus(), game.getGameDatabase().get(gameId).getBoard(), game.getGameDatabase().get(gameId).getPlayerMap()));
     }
 
     /**
      * Fetches the current player, or the winner if the game has finished
      */
     @GetMapping("/currPlayer")
-    public ResponseEntity<PlayerInfo> getCurrPlayer() throws Exception {
-        return ResponseEntity.ok(turnController.currPlayer);
+    public ResponseEntity<PlayerInfo> getCurrPlayer(@RequestParam String gameId) throws Exception {
+        if (game.getGameDatabase().get(gameId) == null) {
+            log.info("Error: Game id not found: " + gameId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(game.getGameDatabase().get(gameId).getCurrPlayer());
     }
 
     /**
@@ -82,19 +86,24 @@ public class WebSocketController {
      */
     @PostMapping("/move")
     public ResponseEntity<Void> placeWord(@RequestBody TurnInfo turnInfo){
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if(game.getGameState() == null){
-            log.info("Invalid request, game not found.");
+        if (game.getGameDatabase().get(turnInfo.gameId()) == null) {
+            log.info("Error: Cannot find game ID: " + turnInfo.gameId());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        if (!game.getGameDatabase().get(turnInfo.gameId()).getPlayerMap().containsKey(turnInfo.playerId())) {
+            log.info("Invalid request, player not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (game.getGameDatabase().get(turnInfo.gameId()).getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot place move when game is " + game.getGameDatabase().get(turnInfo.gameId()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         try{
-            log.info(String.format("Received request from %s to place letters: " + turnInfo.word().toString(), turnInfo.id()));
+            log.info(String.format("Received request from %s to place letters: " + Arrays.toString(turnInfo.word()), turnInfo.playerId()));
             turnController.takeTurn(turnInfo);
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
-
+            sendGameState(turnInfo.gameId());
+            turnController.challengePhase(turnInfo);
+            sendGameState(turnInfo.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -109,19 +118,18 @@ public class WebSocketController {
      */
     @PostMapping("/pass")
     public ResponseEntity<Void> passTurn(@RequestBody PlayerId id) {
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if(game.getGameState() == null){
+        if(game.getGameDatabase().get(id.gameId()) == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        if (game.getGameDatabase().get(id.gameId()).getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot pass turn when game is " + game.getGameDatabase().get(id.gameId()).getStatus());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         try{
             log.info(String.format("Received request to pass %s's turn.",id));
-            turnController.passTurn(id.id());
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
-
+            turnController.passTurn(id.gameId(), id.playerId());
+            sendGameState(id.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -134,21 +142,24 @@ public class WebSocketController {
      * Allows a player to exchange letters
      * @param toExchange DTO containing the player and the letters they wish to exchange
      */
-    @PostMapping("/exchange")
+    @PatchMapping("/exchange")
     public ResponseEntity<Void> exchangeLetters(@RequestBody LettersInfo toExchange) {
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if(game.getGameState() == null){
+        if(game.getGameDatabase().get(toExchange.gameId()) == null){
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        if (game.getGameDatabase().get(toExchange.gameId()).getPlayerMap().get(toExchange.playerId()) == null) {
+            log.info("Invalid request, player not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (game.getGameDatabase().get(toExchange.gameId()).getStatus() != IN_PROGRESS) {
+            log.info("Error: Cannot exchange tiles when game is " + game.getGameDatabase().get(toExchange.gameId()));
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         try{
-            log.info(String.format("Received request from %s to exchange letters: " + toExchange.letters().toString(), toExchange.id()));
-            turnController.exchangeLetters(toExchange.id(), toExchange.letters());
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
-
+            log.info(String.format("Received request from %s to exchange letters: " + Arrays.toString(toExchange.letters()), toExchange.playerId()));
+            turnController.exchangeLetters(toExchange.gameId(), toExchange.playerId(), toExchange.letters());
+            sendGameState(toExchange.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -162,22 +173,24 @@ public class WebSocketController {
      * If all players vote to end the game, then the game ends on the next turn.
      * @param vote
      */
-    @PostMapping("/voteToEnd")
-    public ResponseEntity<Void> exchangeLetters(@RequestBody VoteInfo vote) {
-        System.out.println(vote.gameId());
-        System.out.println(game.getGameState().getId());
-        if (game.getGameState().getStatus() == FINISHED) {
-            log.info("This game has already ended.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (game.getGameState() == null || !game.getGameState().getId().equals(vote.gameId())){
+    @PatchMapping("/vote")
+    public ResponseEntity<Void> vote(@RequestBody VoteInfo vote) {
+        if (game.getGameDatabase().get(vote.gameId()) == null) {
             log.info("Invalid request, game not found.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        if (game.getGameDatabase().get(vote.gameId()).getPlayerMap().get(vote.playerId()) == null) {
+            log.info("Invalid request, player not found.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (game.getGameDatabase().get(vote.gameId()).getStatus() == FINISHED) {
+            log.info("This game has already ended.");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         try{
-            log.info(String.format("Received request from %s to end game.", vote.playerId()));
-            game.voteToEnd(vote.playerId());
-            simpMessagingTemplate.convertAndSend("/game/gameState", game.getGameState());
+            log.info(String.format("Received vote request from %s.", vote.playerId()));
+            game.vote(vote.gameId(), vote.playerId());
+            sendGameState(vote.gameId());
             return new ResponseEntity<>(HttpStatus.OK);
         }
         catch(Exception e){
@@ -186,26 +199,39 @@ public class WebSocketController {
         }
     }
 
-    /**
-     * Queries TurnController to challenge the turn with the specified turnInfo
-     */
-    /*@PostMapping("/challenge")
-    public ResponseEntity<Void> challengeWord(@RequestBody ChallengeInfo challenge){
-        if(game.getGameState() == null){
-            log.info("Invalid request, game not found.");
+    @PostMapping("/challenge")
+    public ResponseEntity<Void> challengeWord(@RequestBody ChallengeInfo challengerInfo) {
+        if (game.getGameDatabase().get(challengerInfo.gameId()) == null){
+            log.info("Game not found");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        try{
-            log.info("Received request to challenge move " + challenge.toString());
-            turnController.challengeWord(challenge);
-            simpMessagingTemplate.convertAndSend("/game", game.getGameState());
-
-            return new ResponseEntity<>(HttpStatus.OK);
+        if (!game.getGameDatabase().get(challengerInfo.gameId()).getPlayerMap().containsKey(challengerInfo.challengerId())) {
+            System.out.println(game.getGameDatabase().get(challengerInfo.gameId()).getPlayerMap().toString());
+            log.info("Player not found");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        catch(Exception e){
+        if (game.getGameDatabase().get(challengerInfo.gameId()).getStatus() != CHALLENGE) {
+            log.info("Can't challenge word when game status is " + game.getGameDatabase().get(challengerInfo.gameId()).getStatus());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            log.info(String.format("Received request from %s to challenge turn.", challengerInfo.challengerId()));
+            turnController.challengeWord(challengerInfo);
+            sendGameState(challengerInfo.gameId());
+        } catch (Exception e) {
             log.info("Error: " + e.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }*/
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
+    @GetMapping("/getDatabase")
+    public ResponseEntity<Map<String, GameState>> getGameDatabase() {
+        return ResponseEntity.ok(game.getGameDatabase());
+    }
+
+    private void sendGameState(String gameStateId){
+        log.info("Websocket broadcasting game to lobby ({})", gameStateId);
+        simpMessagingTemplate.convertAndSend("/game/gameState/" + gameStateId, game.getGameDatabase().get(gameStateId));
+    }
 }

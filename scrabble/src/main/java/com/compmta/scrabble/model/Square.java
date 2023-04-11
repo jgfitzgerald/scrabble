@@ -9,6 +9,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public abstract class Square {
 
+    public static final String LABEL = null;
     //instance variables
     private char letter;
 

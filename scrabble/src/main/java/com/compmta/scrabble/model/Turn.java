@@ -19,7 +19,7 @@ public class Turn {
     private int score;
 
     public Turn(TurnInfo turn) {
-        playerId = turn.id();
+        playerId = turn.playerId();
         word = turn.word();
         row = turn.row();
         column = turn.column();
